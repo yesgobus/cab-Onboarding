@@ -1,0 +1,31 @@
+{
+  "name": "cabdriver",
+  "version": "1.0.0",
+  "description": "Onbording for cab driver on yes go bus",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon --es-module-specifier-resolution=node app.js",
+    "build": "npm install"
+  },
+  "author": "balaji yadav",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.1615.0",
+    "axios": "^1.6.8",
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.2",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "http": "^0.0.1-security",
+    "http-errors": "^2.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.3.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "nodemon": "^3.1.0",
+    "otpless-node-js-auth-sdk": "^1.0.8",
+    "path": "^0.12.7"
+  }
+}
