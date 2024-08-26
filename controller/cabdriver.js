@@ -563,6 +563,8 @@ exports.updateLocationController = async (req, res) => {
       return res.status(400).json({ status: false, message: 'Invalid input parameters', data: {} });
     }
 
+    const driver = await cabdriverModel.findById(driver_id);
+    if(driver){
     // Update the driver's location
     const result = await cabdriverModel.updateOne(
       { _id: driver_id },
@@ -581,6 +583,12 @@ exports.updateLocationController = async (req, res) => {
       message: 'Location updated successfully',
       data: {}
     });
+  }
+  return res.status(400).json({
+    status:false,
+    message:"Driver does not exists",
+    data:{}
+  })
 
   } catch (error) {
     // Handle errors
