@@ -553,3 +553,42 @@ exports.document_upload = async (req, res) => {
     });
   }
 };
+
+exports.updateLocationController = async (req, res) => {
+  try {
+    const { driver_id, driver_lat, driver_lng } = req.body;
+
+    // Validate input
+    if (!driver_id || isNaN(driver_lat) || isNaN(driver_lng)) {
+      return res.status(400).json({ status: false, message: 'Invalid input parameters', data: {} });
+    }
+
+    // Update the driver's location
+    const result = await cabdriverModel.updateOne(
+      { _id: driver_id },
+      { $set: { 'location.coordinates': [parseFloat(driver_lng), parseFloat(driver_lat)] } }
+    );
+
+    // Check if the update was successful
+    if (result.nModified === 0) {
+      return res.status(404).json({ status: false, message: 'Driver not found or location unchanged', data: {} });
+    }
+
+
+    // Send success response
+    return res.status(200).json({
+      status: true,
+      message: 'Location updated successfully',
+      data: {}
+    });
+
+  } catch (error) {
+    // Handle errors
+    console.error('Error updating driver location:', error.message);
+    return res.status(500).json({
+      status: false,
+      message: 'Failed to update driver location',
+      data: { errorMessage: error.message }
+    });
+  }
+};

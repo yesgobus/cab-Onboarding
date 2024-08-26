@@ -1,6 +1,6 @@
-import { Schema, model } from "mongoose";
+const mongoose = require("mongoose");
 
-const cabdriverSchema = new Schema(
+const cabdriverSchema = new mongoose.Schema(
   {
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
@@ -8,10 +8,17 @@ const cabdriverSchema = new Schema(
     email: { type: String },
     dob: { type: Date },
     mobileNumber: { type: String, required: true, unique: true },
+    password: {
+      type: String,
+    },
     address: { type: String },
+    location:{
+      coordinates: {
+        type: [Number],
+        required: true,
+      },
+    },
     pincode: { type: String },
-    alternateNumber: { type: String },
-    bloodGroup: { type: String },
     bank_account_detail: {
       account_type: {
         type: String,
@@ -36,56 +43,48 @@ const cabdriverSchema = new Schema(
     driving_license: {
       type: String,
     },
-    rc_number: {
+    rc_number:{
+      type:String
+    },
+    driving_experience: {
+      total_experience: {
+        type: String,
+      },
+      vehicle_type: {
+        type: String,
+      },
+    },
+    vehicle: {
+      vehicle_registration: {
+        type: String,
+      },
+      permit_details: {
+        type: String,
+      },
+      pending_e_challans: {
+        type: String,
+      },
+    },
+    ratingFeedback: {
       type: String,
     },
-    //driving_experience: {
-    total_experience: {
+    driving_hour_limitation: {
+      limitations: {
+        type: String,
+      },
+      total_work_hour: {
+        type: String,
+      },
+    },
+    tracking_monitoring: {
       type: String,
     },
-    // vehicle_type: {
-    //   type: String,
-    // },
-    //},
-    vehicle_model: { type: String },
-    vehicle_category: { type: String },
-    vehicle_number: { type: String },
-    year_of_registration: { type: String },
-
-    // vehicle: {
-    //   vehicle_registration: {
-    //     type: String,
-    //   },
-    //   permit_details: {
-    //     type: String,
-    //   },
-    //   pending_e_challans: {
-    //     type: String,
-    //   },
-    // },
-    // ratingFeedback: {
-    //   type: String,
-    // },
-    // driving_hour_limitation: {
-    //   limitations: {
-    //     type: String,
-    //   },
-    //   total_work_hour: {
-    //     type: String,
-    //   },
-    // },
-    // tracking_monitoring: {
-    //   type: String,
-    // },
     dl_img: { type: String },
     vehicle_reg_img: { type: String },
-    vehicle_image: { type: String },
-    profile_img: { type: String },
-    aadhaar_img: { type: String },
+    insurance_img: { type: String },
+    road_tax_img: { type: String },
   },
   { timestamps: true }
 );
 
-const Cabdriver = mongoose.model("cabdriver", cabdriverSchema);
-
-export default Cabdriver;
+module.exports = mongoose.model("cabdriver", cabdriverSchema);

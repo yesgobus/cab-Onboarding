@@ -33,7 +33,7 @@ if (app.get("env") === "development") {
     app.use(logger("dev"));
   }
 
-app.use("/cabdriver",cabdriverRoute)
+app.use("/api/cabdriver",cabdriverRoute)
 
 app.use(function (req, res, next) {
     next(createError(404));
