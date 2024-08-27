@@ -1,9 +1,11 @@
-const axios = require("axios");
-const cabdriverModel = require("../model/cabdriver");
-const jwt = require("jsonwebtoken");
-const aws = require("../aws/aws");
+import axios from 'axios';
+import cabdriverModel from '../model/cabdriver.js';
+import jwt from 'jsonwebtoken';
+import * as aws from '../aws/aws.js';
+import Ride from '../model/ride.model.js';
 
-exports.user_signup = async (req, res) => {
+const cabdriverController = {
+  user_signup : async (req, res) => {
   try {
     const { firstName, email, lastName, mobileNumber } = await req.body;
     const reqUser = await cabdriverModel.findOne({
@@ -59,8 +61,8 @@ exports.user_signup = async (req, res) => {
       message: "server error",
     });
   }
-};
-exports.resend_otp = async (req, res) => {
+},
+  resend_otp : async (req, res) => {
   try {
     const response = await axios.post(
       "https://auth.otpless.app/auth/otp/v1/resend",
@@ -89,8 +91,8 @@ exports.resend_otp = async (req, res) => {
       message: "server error",
     });
   }
-};
-exports.verify_otp = async (req, res) => {
+},
+  verify_otp : async (req, res) => {
   try {
     const response = await axios.post(
       "https://auth.otpless.app/auth/otp/v1/verify",
@@ -137,8 +139,8 @@ exports.verify_otp = async (req, res) => {
       message: "server error",
     });
   }
-};
-exports.user_login = async (req, res) => {
+},
+  user_login : async (req, res) => {
   try {
     const user = await cabdriverModel.findOne({
       mobileNumber: req.body.mobileNumber,
@@ -177,9 +179,9 @@ exports.user_login = async (req, res) => {
       message: "server error",
     });
   }
-};
+},
 
-exports.send_otp_to_aadhaar = async (req, res) => {
+  send_otp_to_aadhaar : async (req, res) => {
   try {
     const { aadhaar_number } = req.body;
     if (aadhaar_number.length !== 12) {
@@ -213,9 +215,9 @@ exports.send_otp_to_aadhaar = async (req, res) => {
       message: "server error",
     });
   }
-};
+},
 
-exports.verify_aadhaar = async (req, res) => {
+  verify_aadhaar : async (req, res) => {
   try {
     const { otp } = req.body;
     const { client_id } = req.body;
@@ -250,9 +252,9 @@ exports.verify_aadhaar = async (req, res) => {
       message: "Invalid OTP",
     });
   }
-};
+},
 
-exports.validate_pan = async (req, res) => {
+  validate_pan : async (req, res) => {
   try {
     if (!/[A-Z]{5}[0-9]{4}[A-Z]{1}/.test(req.body.pan_number)) {
       return res
@@ -302,9 +304,9 @@ exports.validate_pan = async (req, res) => {
       message: "server error",
     });
   }
-};
+},
 
-exports.validate_driving_license = async (req, res) => {
+  validate_driving_license : async (req, res) => {
   try {
     const { license_number, dob } = req.body;
     const response = await axios.post(
@@ -344,8 +346,8 @@ exports.validate_driving_license = async (req, res) => {
       message: "server error",
     });
   }
-};
-exports.validate_rc = async (req,res)=>{
+},
+  validate_rc : async (req,res)=>{
   try{
     const response = await axios.post(
       "https://api.idcentral.io/idc/v2/rc/verify",
@@ -382,8 +384,8 @@ exports.validate_rc = async (req,res)=>{
       message: "server error",
     });
   }
-}
-exports.add_bank_detail = async (req, res) => {
+},
+  add_bank_detail : async (req, res) => {
   try {
     if (!/^\d{9,18}$/.test(req.body.account_number)) {
       return res
@@ -418,9 +420,9 @@ exports.add_bank_detail = async (req, res) => {
       message: "server error",
     });
   }
-};
+},
 
-exports.update_user_detail = async (req, res) => {
+  update_user_detail : async (req, res) => {
   try {
     if (req.body.limitations && req.body.total_work_hour) {
       const data = await cabdriverModel.findOneAndUpdate(
@@ -540,9 +542,9 @@ exports.update_user_detail = async (req, res) => {
       message: "server error",
     });
   }
-};
+},
 
-exports.document_upload = async (req, res) => {
+  document_upload : async (req, res) => {
   try {
     return await aws.uploadToS3(file.buffer);
   } catch (err) {
@@ -552,9 +554,9 @@ exports.document_upload = async (req, res) => {
       message: "server error",
     });
   }
-};
+},
 
-exports.updateLocationController = async (req, res) => {
+  updateLocationController : async (req, res) => {
   try {
     const { driver_lat, driver_lng } = req.body;
     const driver_id = req.user;
@@ -600,10 +602,10 @@ exports.updateLocationController = async (req, res) => {
       data: { errorMessage: error.message }
     });
   }
-};
+},
 
 
-exports.updateDutyController = async (req, res) => {
+  updateDutyController : async (req, res) => {
   try {
     const {is_on_duty } = req.body;
     const driver_id = req.user;
@@ -645,4 +647,49 @@ exports.updateDutyController = async (req, res) => {
       data: { errorMessage: error.message }
     });
   }
-};
+},
+reqAcceptController: async(req,res) =>{
+  try {
+    const driver_id = req.user; // Ensure req.user is correctly set by authentication middleware
+    const { ride_id, status_accept } = req.body;
+
+    // Validate input
+    if (!ride_id || status_accept === undefined) {
+      return res.status(400).json({ status: false, message: 'Missing ride_id or status_accept', data: {} });
+    }
+
+    // Find the driver and ride
+    const driver = await cabdriverModel.findById(driver_id);
+    const ride = await Ride.findById(ride_id);
+
+    if (!driver) {
+      throw new Error('Driver not found');
+    }
+
+    if (!ride) {
+      throw new Error('Ride does not exist');
+    }
+
+    // Update driver and ride status
+    driver.is_on_duty = status_accept;
+    ride.status_accept = status_accept;
+
+    await driver.save(); // Save changes to the driver
+    await ride.save(); // Save changes to the ride
+
+    res.status(200).json({
+      status: true,
+      message: 'Request completed',
+      data: `Ride Accepted: ${status_accept}`,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      message: error.message,
+      data: {},
+    });
+  }
+}
+}
+
+export default cabdriverController;

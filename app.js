@@ -1,25 +1,25 @@
-var createError = require("http-errors");
-var express = require('express');
-var cors = require('cors');
-var bodyParser = require('body-parser');
-var path = require("path");
-var cookieParser = require("cookie-parser");
-var logger = require("morgan");
-const multer = require('multer')
+import createError from 'http-errors';
+import express from 'express';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import path from 'path';
+import cookieParser from 'cookie-parser';
+import logger from 'morgan';
+import multer from 'multer';
 
-var dbCon = require("./lib/db");
+import dbCon from './lib/db.js'; // Ensure you use the .js extension
+import cabdriverRoute from './routes/cabdriver.js'; // Ensure you use the .js extension
 
-const cabdriverRoute = require("./routes/cabdriver");
 const app = express();
 
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
-  res.header("Access-Control-Allow-Headers", "Content-Type, authorization");
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, authorization');
   next();
 });
 
-app.use(logger("dev"));
+app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -27,20 +27,27 @@ app.use(cors());
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(multer().any())
+app.use(multer().any());
 
-if (app.get("env") === "development") {
-    app.use(logger("dev"));
-  }
+if (app.get('env') === 'development') {
+  app.use(logger('dev'));
+}
 
-app.use("/api/cabdriver",cabdriverRoute)
+app.use('/api/cabdriver', cabdriverRoute);
 
-app.use(function (req, res, next) {
-    next(createError(404));
-  });
-  
-  // error handler
-  app.listen(8000, () => {
-    //connect();
-    console.log(`server started on port ${8000}`);
-  });
+app.use((req, res, next) => {
+  next(createError(404));
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+  res.status(err.status || 500);
+  res.render('error');
+});
+
+app.listen(8000, () => {
+  console.log(`Server started on port ${8000}`);
+});

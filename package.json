@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Onbording for cab driver on yes go bus",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "nodemon --es-module-specifier-resolution=node app.js",
     "build": "npm install"

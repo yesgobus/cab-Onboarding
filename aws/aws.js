@@ -1,21 +1,17 @@
-//upload multi image to aws s3
-const AWS = require("aws-sdk");
-require("aws-sdk/lib/maintenance_mode_message").suppress = true;
+import AWS from 'aws-sdk';
 
-const bucketName = process.env.AWS_BUCKET_NAME;
-
-const awsConfig = {
+// Suppress maintenance mode message
+AWS.config.update({ 
   accessKeyId: process.env.AWS_ACCESS_KEY,
   secretAccessKey: process.env.AWS_SECRET_KEY,
-  region: process.env.AWS_REGION,
-};
+  region: process.env.AWS_REGION 
+});
 
-const S3 = new AWS.S3(awsConfig);
+const bucketName = process.env.AWS_BUCKET_NAME;
+const S3 = new AWS.S3();
 
-
-//upload to s3
-const uploadToS3 = (fileData) => {
-  //const decodedFileData = Buffer.from(fileData, 'base64')
+// Upload to S3
+export const uploadToS3 = (fileData) => {
   return new Promise((resolve, reject) => {
     const params = {
       Bucket: bucketName,
@@ -26,15 +22,13 @@ const uploadToS3 = (fileData) => {
       if (err) {
         return reject(err);
       }
-
       return resolve(data.Location);
     });
   });
 };
 
-// Example usage:
-
-const deleteFile = (fileName) => {
+// Delete file from S3
+export const deleteFile = (fileName) => {
   const parsedUrl = new URL(fileName);
   const objectKey = parsedUrl.pathname.substring(1);
   return new Promise((resolve, reject) => {
@@ -50,5 +44,3 @@ const deleteFile = (fileName) => {
     });
   });
 };
-
-module.exports = { uploadToS3, deleteFile };
