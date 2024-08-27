@@ -27,6 +27,7 @@
     "multer": "^1.4.5-lts.1",
     "nodemon": "^3.1.0",
     "otpless-node-js-auth-sdk": "^1.0.8",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "socket.io": "^4.7.5"
   }
 }

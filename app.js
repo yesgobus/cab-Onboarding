@@ -6,7 +6,6 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import multer from 'multer';
-
 import dbCon from './lib/db.js'; // Ensure you use the .js extension
 import cabdriverRoute from './routes/cabdriver.js'; // Ensure you use the .js extension
 
