@@ -556,7 +556,8 @@ exports.document_upload = async (req, res) => {
 
 exports.updateLocationController = async (req, res) => {
   try {
-    const { driver_id, driver_lat, driver_lng } = req.body;
+    const { driver_lat, driver_lng } = req.body;
+    const driver_id = req.user;
 
     // Validate input
     if (!driver_id || isNaN(driver_lat) || isNaN(driver_lng)) {
@@ -568,7 +569,7 @@ exports.updateLocationController = async (req, res) => {
     // Update the driver's location
     const result = await cabdriverModel.updateOne(
       { _id: driver_id },
-      { $set: { 'location.coordinates': [parseFloat(driver_lng), parseFloat(driver_lat)] } }
+      { $set: { 'location.coordinates': [parseFloat(driver_lat), parseFloat(driver_lng)] } }
     );
 
     // Check if the update was successful
@@ -604,12 +605,9 @@ exports.updateLocationController = async (req, res) => {
 
 exports.updateDutyController = async (req, res) => {
   try {
-    const { driver_id, is_on_duty } = req.body;
-
-    // Validate input
-    if (!driver_id || !is_on_duty) {
-      return res.status(400).json({ status: false, message: 'Invalid input parameters', data: {} });
-    }
+    const {is_on_duty } = req.body;
+    const driver_id = req.user;
+    
 
     const driver = await cabdriverModel.findById(driver_id);
     if(driver){
