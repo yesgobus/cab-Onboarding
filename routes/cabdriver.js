@@ -16,4 +16,5 @@ router.post("/validate_rc",middleware.authenticateToken, cabdriverController.val
 router.post("/add_bank_detail", middleware.authenticateToken, cabdriverController.add_bank_detail);
 router.post("/update_user_detail",middleware.authenticateToken, cabdriverController.update_user_detail)
 router.post("/update-location", cabdriverController.updateLocationController);
+router.post("/duty", cabdriverController.updateDutyController);
 module.exports = router;

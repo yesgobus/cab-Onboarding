@@ -83,6 +83,9 @@ const cabdriverSchema = new mongoose.Schema(
     vehicle_reg_img: { type: String },
     insurance_img: { type: String },
     road_tax_img: { type: String },
+    is_on_duty:{
+      type:Boolean
+    },
   },
   { timestamps: true }
 );

@@ -600,3 +600,51 @@ exports.updateLocationController = async (req, res) => {
     });
   }
 };
+
+
+exports.updateDutyController = async (req, res) => {
+  try {
+    const { driver_id, is_on_duty } = req.body;
+
+    // Validate input
+    if (!driver_id || !is_on_duty) {
+      return res.status(400).json({ status: false, message: 'Invalid input parameters', data: {} });
+    }
+
+    const driver = await cabdriverModel.findById(driver_id);
+    if(driver){
+    // Update the driver's location
+    const result = await cabdriverModel.updateOne(
+      { _id: driver_id },
+      { $set: { 'is_on_duty': is_on_duty } }
+    );
+
+    // Check if the update was successful
+    if (result.nModified === 0) {
+      return res.status(404).json({ status: false, message: 'Driver not found or duty unchanged', data: {} });
+    }
+
+
+    // Send success response
+    return res.status(200).json({
+      status: true,
+      message: 'Duty status updated successfully',
+      data: {}
+    });
+  }
+  return res.status(400).json({
+    status:false,
+    message:"Driver does not exists",
+    data:{}
+  })
+
+  } catch (error) {
+    // Handle errors
+    console.error('Error updating driver duty status:', error.message);
+    return res.status(500).json({
+      status: false,
+      message: 'Failed to update driver duty status',
+      data: { errorMessage: error.message }
+    });
+  }
+};
