@@ -48,11 +48,10 @@ const rideSchema = new mongoose.Schema({
   },
   pickup_distance: {
     type: String,
-    required: true
   },
   pickup_duration: {
     type: String,
-    required: true
+
   },
   status_accept:{
     type:Boolean

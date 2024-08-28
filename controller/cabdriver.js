@@ -678,18 +678,32 @@ reqAcceptController: async(req,res) =>{
 
    const savedRide = await ride.save(); // Save changes to the ride
 
-       // Get current time
-       const date = new Date();
-       const options = { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata'};
-       const current_time = date.toLocaleTimeString('en-US', options);
+   function parseDuration(duration) {
+    const hoursMatch = duration.match(/(\d+)\s*hours?/);
+    const minsMatch = duration.match(/(\d+)\s*mins?/);
+    
+    const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
+    const mins = minsMatch ? parseInt(minsMatch[1]) : 0;
+    
+    return (hours * 60 * 60 * 1000) + (mins * 60 * 1000); // milliseconds
+}
 
-       const pickup_duration_minutes = parseInt(savedRide.pickup_duration, 10) || 0;
-const pickup_time = new Date(date.getTime() + pickup_duration_minutes * 60000);
-const pickup_time_string = pickup_time.toLocaleTimeString('en-US', options);
+// Get current time
+const date = new Date();
+const options = { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' };
+const currentTime = date.toLocaleTimeString('en-US', options);
+
+// Parse pickup duration and calculate pickup time
+const durationMs = parseDuration(savedRide.pickup_duration);
+const pickupDate = new Date(date.getTime() + durationMs);
+
+// Format pickup time
+const pickupTimeOptions = { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' };
+const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOptions);
 
    const rideData = {
     driverName : `${driver.firstName} ${driver.lastName}`,
-    pickup_time: pickup_time_string || "",
+    pickup_time: pickupTimeString || "",
     user_name: savedRide.user_name,
     trip_distance: savedRide.trip_distance || "", // Assuming trip_distance may not be available
     trip_duration: savedRide.trip_duration || "", // Assuming trip_duration may not be available
@@ -714,7 +728,8 @@ const pickup_time_string = pickup_time.toLocaleTimeString('en-US', options);
   }
 
   if (status_accept === true) {
-    io.to(customer.socketId).emit('trip-driver-accepted', rideData);
+    // io.emit('trip-driver-accepted', rideData);
+    io.to(customer.socketId).emit('trip-driver-accepted', rideData)
   } else if (status_accept===false && savedRide.isSearching === false) {
     io.to(customer.socketId).emit('trip-driver-not-found', {Message:"All drivers have been notified or no driver is available."});
   }
