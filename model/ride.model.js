@@ -58,7 +58,12 @@ const rideSchema = new mongoose.Schema({
     type:Boolean
   },  
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Users' },
-
+  isSearching :{
+    type:Boolean
+  },
+  otp:{
+    type:String
+  }
 });
 
 // Create the Ride model
