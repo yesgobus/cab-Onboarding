@@ -680,7 +680,7 @@ reqAcceptController: async(req,res) =>{
 
        // Get current time
        const date = new Date();
-       const options = { hour: '2-digit', minute: '2-digit', hour12: true };
+       const options = { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata'};
        const current_time = date.toLocaleTimeString('en-US', options);
 
        const pickup_duration_minutes = parseInt(savedRide.pickup_duration, 10) || 0;
@@ -714,7 +714,7 @@ const pickup_time_string = pickup_time.toLocaleTimeString('en-US', options);
   }
 
   if (status_accept === true) {
-    io.to(customer.socketId).emit('trip-driver-accepted', rideData);
+    io.emit('trip-driver-accepted', rideData);
   } else if (status_accept===false && savedRide.isSearching === false) {
     io.to(customer.socketId).emit('trip-driver-not-found', {Message:"All drivers have been notified or no driver is available."});
   }
