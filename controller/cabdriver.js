@@ -683,7 +683,7 @@ reqAcceptController: async(req,res) =>{
        const options = { hour: '2-digit', minute: '2-digit', hour12: true };
        const current_time = date.toLocaleTimeString('en-US', options);
 
-       const pickup_duration_minutes = parseInt(savedRide.pickup_duration) || 0;
+       const pickup_duration_minutes = parseInt(savedRide.pickup_duration, 10) || 0;
 const pickup_time = new Date(date.getTime() + pickup_duration_minutes * 60000);
 const pickup_time_string = pickup_time.toLocaleTimeString('en-US', options);
 
