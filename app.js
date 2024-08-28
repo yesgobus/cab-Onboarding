@@ -1,6 +1,7 @@
 import createError from 'http-errors';
 import express from 'express';
 import cors from 'cors';
+import http from 'http'
 import bodyParser from 'body-parser';
 import path from 'path';
 import cookieParser from 'cookie-parser';
@@ -8,8 +9,17 @@ import logger from 'morgan';
 import multer from 'multer';
 import dbCon from './lib/db.js'; // Ensure you use the .js extension
 import cabdriverRoute from './routes/cabdriver.js'; // Ensure you use the .js extension
+import { Server as SocketIOServer } from 'socket.io';
+import {UserModel} from "./model/user.model.js"
 
 const app = express();
+
+const server = http.createServer(app);
+const io = new SocketIOServer(server);
+
+//setting io instance for req.app
+app.set('io',io);
+
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
@@ -47,6 +57,36 @@ app.use((err, req, res, next) => {
   res.render('error');
 });
 
-app.listen(8000, () => {
+server.listen(8000, '0.0.0.0', () => {
   console.log(`Server started on port ${8000}`);
+});
+
+io.on('connection', (socket) => {  
+  console.log('New client connected', socket.id);
+
+  // Handle customer registration
+  socket.on('register-customer', async (customer_id) => {
+    try {
+      // Update driver with socketId
+      await UserModel.updateOne({ _id: customer_id }, { $set: { socketId: socket.id } });
+      console.log(`Driver ${driverId} registered with socketId ${socket.id}`);
+    } catch (error) {
+      console.error('Error registering driver:', error);
+    }
+  });
+
+  // Example event handlers
+  socket.on('ride-request', (data) => {
+    console.log('Received ride-request with data:', data);
+    socket.emit('responseEvent', { message: 'Data received' });
+  });
+
+  socket.on('message', (data) => {
+    console.log('Received message with data:', data);
+    socket.emit('responseEvent', { message: 'Data received' });
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
 });

@@ -3,6 +3,7 @@ import cabdriverModel from '../model/cabdriver.js';
 import jwt from 'jsonwebtoken';
 import * as aws from '../aws/aws.js';
 import Ride from '../model/ride.model.js';
+import { UserModel } from '../model/user.model.js';
 
 const cabdriverController = {
   user_signup : async (req, res) => {
@@ -652,6 +653,7 @@ reqAcceptController: async(req,res) =>{
   try {
     const driver_id = req.user; // Ensure req.user is correctly set by authentication middleware
     const { ride_id, status_accept } = req.body;
+    const io = req.app.get('io');
 
     // Validate input
     if (!ride_id || status_accept === undefined) {
@@ -671,11 +673,47 @@ reqAcceptController: async(req,res) =>{
     }
 
     // Update driver and ride status
-    driver.is_on_duty = status_accept;
     ride.status_accept = status_accept;
 
-    await driver.save(); // Save changes to the driver
-    await ride.save(); // Save changes to the ride
+
+   const savedRide = await ride.save(); // Save changes to the ride
+
+       // Get current time
+       const date = new Date();
+       const options = { hour: '2-digit', minute: '2-digit', hour12: true };
+       const current_time = date.toLocaleTimeString('en-US', options);
+
+       const pickup_duration_minutes = parseInt(savedRide.pickup_duration) || 0;
+const pickup_time = new Date(date.getTime() + pickup_duration_minutes * 60000);
+const pickup_time_string = pickup_time.toLocaleTimeString('en-US', options);
+
+   const rideData = {
+    driverName : `${driver.firstName} ${driver.lastName}`,
+    pickup_time: pickup_time_string || "",
+    user_name: savedRide.user_name,
+    trip_distance: savedRide.trip_distance || "", // Assuming trip_distance may not be available
+    trip_duration: savedRide.trip_duration || "", // Assuming trip_duration may not be available
+    trip_amount: savedRide.trip_amount || "", // Assuming trip_amount may not be available
+    pickup_address: savedRide.pickup_address ? savedRide.pickup_address.toString() : "",
+    pickup_lat: savedRide.pickup_lat ? savedRide.pickup_lat.toString() : "",
+    pickup_lng: savedRide.pickup_lng ? savedRide.pickup_lng.toString() : "",
+    drop_address: savedRide.drop_address ? savedRide.drop_address.toString() : "",
+    drop_lat: savedRide.drop_lat ? savedRide.drop_lat.toString() : "",
+    drop_lng: savedRide.drop_lng ? savedRide.drop_lng.toString() : "",
+    pickup_distance: savedRide.pickup_distance || "",
+    pickup_duration: savedRide.pickup_duration || "",
+  };
+
+
+    if(status_accept === true){
+      io.to(UserModel.socketId).emit('trip-driver-accepted', rideData);
+      io.emit('trip-driver-accepted', rideData)
+    }
+    else if(status_accept === false){
+      io.to(UserModel.socketId).emit('trip-driver-not-found', `ride was rejected by ${driver._id}` );
+     // io.emit('trip-driver-not-found', `ride was rejected by ${driver._id}`);
+    }
+
 
     res.status(200).json({
       status: true,
