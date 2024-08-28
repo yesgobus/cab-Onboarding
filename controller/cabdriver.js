@@ -705,15 +705,18 @@ const pickup_time_string = pickup_time.toLocaleTimeString('en-US', options);
   };
 
 
-    if(status_accept === true){
-      io.to(UserModel.socketId).emit('trip-driver-accepted', rideData);
-      io.emit('trip-driver-accepted', rideData)
-    }
-    else if(status_accept === false){
-      io.to(UserModel.socketId).emit('trip-driver-not-found', `ride was rejected by ${driver._id}` );
-     // io.emit('trip-driver-not-found', `ride was rejected by ${driver._id}`);
-    }
+  //find customer to emit data to 
+  const customer = await UserModel.findById(savedRide.userId);
 
+  if (!customer) {
+    throw new Error('Customer not found');
+  }
+
+  if (status_accept === true) {
+    io.to(customer.socketId).emit('trip-driver-accepted', rideData);
+  } else if (status_accept === false) {
+    io.to(customer.socketId).emit('trip-driver-not-found', `Ride was rejected by driver ${driver.firstName} ${driver.lastName}`);
+  }
 
     res.status(200).json({
       status: true,

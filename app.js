@@ -33,7 +33,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
-
+app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(multer().any());
@@ -69,9 +69,9 @@ io.on('connection', (socket) => {
     try {
       // Update driver with socketId
       await UserModel.updateOne({ _id: customer_id }, { $set: { socketId: socket.id } });
-      console.log(`Driver ${driverId} registered with socketId ${socket.id}`);
+      console.log(`Customer ${customer_id} registered with socketId ${socket.id}`);
     } catch (error) {
-      console.error('Error registering driver:', error);
+      console.error('Error registering customer:', error);
     }
   });
 

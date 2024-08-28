@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.IO Client</title>
+    <script src="http://localhost:8000/socket.io/socket.io.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Connect to the Socket.IO server
+            const socket = io('http://localhost:8000'); // Adjust the URL and port as needed
+
+            const driver_id = '66c61079c6f464387e1b21b2';// Replace with actual user ID or information
+            socket.emit('register-driver', driver_id);
+
+            const customer_id = "66c5cf1f4bd38e3ae85a90af";
+            socket.emit('register-customer', customer_id);
+
+
+            socket.on('trip-driver-not-found', function(data) {
+                console.log('Received trip-driver-accepted event:', data);
+                document.getElementById('message').innerText = `Trip Accepted: ${JSON.stringify(data)}`;
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Socket.IO Client</h1>
+    <div id="message">Waiting for messages...</div>
+</body>
+</html>

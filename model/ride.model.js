@@ -56,7 +56,9 @@ const rideSchema = new mongoose.Schema({
   },
   status_accept:{
     type:Boolean
-  }
+  },  
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Users' },
+
 });
 
 // Create the Ride model
