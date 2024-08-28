@@ -714,7 +714,7 @@ const pickup_time_string = pickup_time.toLocaleTimeString('en-US', options);
   }
 
   if (status_accept === true) {
-    io.emit('trip-driver-accepted', rideData);
+    io.to(customer.socketId).emit('trip-driver-accepted', rideData);
   } else if (status_accept===false && savedRide.isSearching === false) {
     io.to(customer.socketId).emit('trip-driver-not-found', {Message:"All drivers have been notified or no driver is available."});
   }
