@@ -11,6 +11,8 @@ import dbCon from './lib/db.js'; // Ensure you use the .js extension
 import cabdriverRoute from './routes/cabdriver.js'; // Ensure you use the .js extension
 import { Server as SocketIOServer } from 'socket.io';
 import {UserModel} from "./model/user.model.js"
+import cron from 'node-cron'
+import cabdriverController from './controller/cabdriver.js';
 
 const app = express();
 
@@ -59,6 +61,12 @@ app.use((err, req, res, next) => {
 
 server.listen(8000, '0.0.0.0', () => {
   console.log(`Server started on port ${8000}`);
+});
+
+//cron scheduler for drivers location updation and is_on_duty
+cron.schedule('* * * * *', () => {
+  console.log('Running scheduled task to update driver statuses');
+  cabdriverController.updateIsOnDuty();
 });
 
 io.on('connection', (socket) => {  

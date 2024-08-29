@@ -4,6 +4,9 @@ import jwt from 'jsonwebtoken';
 import * as aws from '../aws/aws.js';
 import Ride from '../model/ride.model.js';
 import { UserModel } from '../model/user.model.js';
+import cron from 'node-cron';
+import moment from 'moment-timezone';
+
 
 const cabdriverController = {
   user_signup : async (req, res) => {
@@ -572,7 +575,9 @@ const cabdriverController = {
     // Update the driver's location
     const result = await cabdriverModel.updateOne(
       { _id: driver_id },
-      { $set: { 'location.coordinates': [parseFloat(driver_lat), parseFloat(driver_lng)] } }
+      { $set: { 'location.coordinates': [parseFloat(driver_lat), parseFloat(driver_lng)],
+                'is_on_duty': true
+       } }
     );
 
     // Check if the update was successful
@@ -746,6 +751,24 @@ const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOption
       data: {},
     });
   }
+},
+updateIsOnDuty: async (req,res)=>{
+  try{
+
+    //check for time according to time zone of database
+    const now = moment().tz('Asia/Kolkata');
+    const fiveMinutesAgo = now.subtract(5, 'minutes').toISOString();
+
+
+    const result = await cabdriverModel.updateMany(
+        { updatedAt: { $lt: fiveMinutesAgo } },
+        { $set: { is_on_duty: false } }
+    );
+
+  }catch(error){
+    res.status(500).json({status:false, message:error, data:{}})
+  }
+
 }
 }
 
