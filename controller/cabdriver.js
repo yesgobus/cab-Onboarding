@@ -7,6 +7,17 @@ import { UserModel } from '../model/user.model.js';
 import cron from 'node-cron';
 import moment from 'moment-timezone';
 
+function normalizeName(name) {
+  console.log(name.toLowerCase().replace(/[^a-z\s]/g, '').trim())
+  return name?.toLowerCase().replace(/[^a-z\s]/g, '').trim();
+}
+
+function matchNames(name1, name2) {
+console.log(normalizeName(name1))
+  const normalized1 = normalizeName(name1);
+  const normalized2 = normalizeName(name2);
+  return normalized1.includes(normalized2) || normalized2.includes(normalized1);
+}
 
 const cabdriverController = {
   user_signup : async (req, res) => {
@@ -427,126 +438,100 @@ const cabdriverController = {
 },
 
   update_user_detail : async (req, res) => {
-  try {
-    if (req.body.limitations && req.body.total_work_hour) {
-      const data = await cabdriverModel.findOneAndUpdate(
-        { _id: req.user },
-        {
-          driving_hour_limitation: {
-            limitations: req.body.limitations,
-            total_work_hour: req.body.total_work_hour,
+    try {
+      if (req.body.fullName && req.body.email && req.body.mobileNumber) {
+        const data = await cabdriverModel.findOneAndUpdate(
+          { _id: req.user },
+          {
+            fullName: req.body.fullName,
+            email: req.body.email,
+            mobileNumber: req.body.mobileNumber,
           },
-        }
-      );
-      return res.status(200).send({
-        status: true,
-        data,
-        message: "User detail updated successfully",
-      });
-    }
-    if (req.body.ratingFeedback) {
-      const data = await cabdriverModel.findOneAndUpdate(
-        { _id: req.user },
-        {
-          ratingFeedback: req.body.ratingFeedback,
-        }
-      );
-      return res.status(200).send({
-        status: true,
-        data,
-        message: "User detail updated successfully",
-      });
-    }
-    if (req.body.tracking_monitoring) {
-      const data = await cabdriverModel.findOneAndUpdate(
-        { _id: req.user },
-        {
-          tracking_monitoring: req.body.tracking_monitoring,
-        }
-      );
-      return res.status(200).send({
-        status: true,
-        data,
-        message: "User detail updated successfully",
-      });
-    }
-    if (
-      req.body.total_experience &&
-      req.body.vehicle_type
-    ) {
-      console.log(req.body)
-      const data = await cabdriverModel.findOneAndUpdate(
-        { _id: req.user },
-        {
-          dl_img: await aws.uploadToS3(req.body.dl_img),
-          vehicle_reg_img: await aws.uploadToS3(req.body.vehicle_reg_img),
-          insurance_img: await aws.uploadToS3(req.body.insurance_img),
-          road_tax_img: await aws.uploadToS3(req.body.road_tax_img),
-          driving_experience: {
+          { new: true }
+        );
+        return res.status(200).send({
+          status: true,
+          data,
+          message: "User detail updated successfully",
+        });
+      }
+      if (
+        !req.body.dl_img ||
+        req.body.dl_img === "" ||
+        !req.body.vehicle_reg_img ||
+        req.body.vehicle_reg_img === "" ||
+        !req.body.vehicle_image ||
+        req.body.vehicle_image === "" ||
+        !req.body.profile_img ||
+        req.body.profile_img === "" ||
+        !req.body.aadhaar_img ||
+        req.body.aadhaar_img === ""
+      ) {
+        return res.status(400).send({
+          status: false,
+          data: {},
+          message: "All document required",
+        });
+      }
+      if (
+        req.body.total_experience &&
+        req.body.vehicle_model &&
+        req.body.vehicle_category &&
+        req.body.vehicle_number &&
+        req.body.year_of_registration &&
+        req.body.fullName &&
+        req.body.email &&
+        req.body.mobileNumber &&
+        req.body.alternateNumber &&
+        req.body.bloodGroup &&
+        req.body.pincode &&
+        req.body.address &&
+        req.body.dob &&
+        req.body.user_type
+      ) {
+        const data = await cabdriverModel.findOneAndUpdate(
+          { _id: req.user },
+          {
+            dl_img: await aws.uploadToS3(req.body.dl_img),
+            vehicle_reg_img: await aws.uploadToS3(req.body.vehicle_reg_img),
+            vehicle_image: await aws.uploadToS3(req.body.vehicle_image),
+            profile_img: await aws.uploadToS3(req.body.profile_img),
+            aadhaar_img: await aws.uploadToS3(req.body.aadhaar_img),
             total_experience: req.body.total_experience,
-            vehicle_type: req.body.vehicle_type,
+            vehicle_model: req.body.vehicle_model,
+            vehicle_category: req.body.vehicle_category,
+            vehicle_number: req.body.vehicle_number,
+            year_of_registration: req.body.year_of_registration,
+            fullName: req.body.fullName,
+            email: req.body.email,
+            mobileNumber: req.body.mobileNumber,
+            alternateNumber: req.body.alternateNumber,
+            bloodGroup: req.body.bloodGroup,
+            pincode: req.body.pincode,
+            address: req.body.address,
+            dob: req.body.dob,
+            user_type:req.body.user_type
           },
-        }
-      );
-      return res.status(200).send({
-        status: true,
-        data,
-        message: "User detail updated successfully",
+          { new: true }
+        );
+        return res.status(200).send({
+          status: true,
+          data: {},
+          message: "User detail updated successfully",
+        });
+      }
+  
+      return res
+        .status(200)
+        .send({ status: true, data: {}, message: "No data updated" });
+    } catch (err) {
+      return res.status(500).send({
+        status: false,
+        data: { errorMessage: err.message },
+        message: "server error",
       });
     }
-    if (
-      req.body.vehicle_registration &&
-      req.body.permit_details &&
-      req.body.pending_e_challans
-    ) {
-      const data = await cabdriverModel.findOneAndUpdate(
-        { _id: req.user },
-        {
-          vehicle: {
-            vehicle_registration: req.body.vehicle_registration,
-            permit_details: req.body.permit_details,
-            pending_e_challans: req.body.pending_e_challans,
-          },
-        }
-      );
-      return res.status(200).send({
-        status: true,
-        data,
-        message: "User detail updated successfully",
-      });
-    }
-    if (
-      req.body.fullName &&
-      req.body.email &&
-      req.body.mobileNumber &&
-      req.body.pincode
-    ) {
-      const data = await cabdriverModel.findOneAndUpdate(
-        { _id: req.user },
-        {
-          fullName: req.body.fullName,
-          email: req.body.email,
-          mobileNumber: req.body.mobileNumber,
-          pincode: req.body.pincode,
-        }
-      );
-      return res.status(200).send({
-        status: true,
-        data,
-        message: "User detail updated successfully",
-      });
-    }
-    return res
-      .status(200)
-      .send({ status: true, data: {}, message: "No data updated" });
-  } catch (err) {
-    return res.status(500).send({
-      status: false,
-      data: { errorMessage: err.message },
-      message: "server error",
-    });
-  }
-},
+  },
 
   document_upload : async (req, res) => {
   try {
@@ -680,6 +665,10 @@ reqAcceptController: async(req,res) =>{
     // Update driver and ride status
     ride.status_accept = status_accept;
 
+    //save otp if driver accepts the ride
+if(status_accept === true){
+  ride.otp = (Math.floor(1000 + Math.random() * 9000)).toString();
+}
 
    const savedRide = await ride.save(); // Save changes to the ride
 
@@ -708,6 +697,7 @@ const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOption
 
    const rideData = {
     driverName : `${driver.firstName} ${driver.lastName}`,
+    driver_phone: driver.mobileNumber.toString(),
     pickup_time: pickupTimeString || "",
     user_name: savedRide.user_name,
     trip_distance: savedRide.trip_distance || "", // Assuming trip_distance may not be available
@@ -721,7 +711,7 @@ const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOption
     drop_lng: savedRide.drop_lng ? savedRide.drop_lng.toString() : "",
     pickup_distance: savedRide.pickup_distance || "",
     pickup_duration: savedRide.pickup_duration || "",
-    otp: (Math.floor(1000 + Math.random() * 9000)).toString(),
+    otp: savedRide.otp,
   };
 
 
@@ -769,6 +759,98 @@ updateIsOnDuty: async (req,res)=>{
     res.status(500).json({status:false, message:error, data:{}})
   }
 
+},
+goForPickup : async (req,res) =>{
+  try {
+    
+
+    const { ride_id } = req.body;
+    const io = req.app.get('io');
+
+
+    // Validate input
+    if (!ride_id) {
+      return res.status(400).json({ status: false, message: 'Ride ID is required', data: {} });
+    }
+
+    // Find the ride and customer
+    const ride = await Ride.findById(ride_id).exec();
+    if (!ride) {
+      return res.status(404).json({ status: false, message: 'Ride not found', data: {} });
+    }
+
+    const customer = await UserModel.findById(ride.userId).exec();
+    if (!customer) {
+      return res.status(404).json({ status: false, message: 'Customer not found', data: {} });
+    }
+
+    // Update the ride status
+    ride.can_be_cancelled = false;
+    await ride.save();
+
+    // Emit pickup status to clients
+    io.to(customer.socketId).emit('pickup-status', {
+      success: true,
+      message: 'Driver has left for pickup',
+      data: {}
+    });
+
+    // Respond to the request
+    res.status(200).json({ status: true, message: 'Pickup status updated', data: {} });
+  } catch (error) {
+    
+    // Respond with error status and message
+    res.status(500).json({ status: false, message: error, data: {} });
+  }
+},
+
+startRide : async (req,res)=>{
+  try {
+    const io = req.app.get('io');
+    const { ride_id, otp } = req.body;
+
+    // Validate input
+    if (!ride_id || !otp) {
+      return res.status(400).json({ status: false, message: 'Ride ID and OTP are required', data: {} });
+    }
+
+    // Find the ride and customer
+    const ride = await Ride.findById(ride_id).exec();
+    if (!ride) {
+      return res.status(404).json({ status: false, message: 'Ride not found', data: {} });
+    }
+
+    const customer = await UserModel.findById(ride.userId).exec();
+    if (!customer) {
+      return res.status(404).json({ status: false, message: 'Customer not found', data: {} });
+    }
+
+    // Validate OTP
+    if (otp !== ride.otp) {
+      return res.status(400).json({ status: false, message: 'Invalid OTP', data: {} });
+    }
+
+    // Update ride status
+    ride.isStarted = true;
+    ride.isSearching = false;
+    await ride.save();
+
+    // Emit ride start event
+    io.to(customer.socketId).emit('pickup-status', {
+      success: true,
+      message: 'Your ride has started, please enjoy your ride',
+      data: {}
+    });
+
+    // Respond to the request
+    res.status(200).json({ status: true, message: 'Ride started successfully', data: {} });
+  } catch (error) {
+    // Log error for debugging
+    console.error('Error in startRide:', error);
+
+    // Respond with error status and message
+    res.status(500).json({ status: false, message: 'Internal server error', data: {} });
+  }
 }
 }
 

@@ -1,14 +1,31 @@
 import mongoose from 'mongoose';
 
 const cabdriverSchema = new mongoose.Schema({
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  fullName: { type: String },
-  email: { type: String },
-  dob: { type: Date },
-  mobileNumber: { type: String, required: true, unique: true },
-  password: { type: String },
-  address: { type: String },
+  firstName: {
+    type: String,
+    required: true,
+  },
+  lastName: {
+    type: String,
+    required: true,
+  },
+  fullName: {
+    type: String,
+  },
+  email: {
+    type: String,
+  },
+  dob: {
+    type: Date,
+  },
+  mobileNumber: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  address: {
+    type: String,
+  },
   location: {
     type: {
       type: String,
@@ -16,43 +33,102 @@ const cabdriverSchema = new mongoose.Schema({
     },
     coordinates: {
       type: [Number],
-      index: '2dsphere'
+      index: '2dsphere',
     },
   },
-  pincode: { type: String },
+  pincode: {
+    type: String,
+  },
   bank_account_detail: {
     account_type: {
       type: String,
       enum: ['Savings', 'Current'],
     },
-    account_holder_name: { type: String },
-    account_number: { type: String },
-    ifsc_code: { type: String },
+    account_holder_name: {
+      type: String,
+    },
+    account_number: {
+      type: String,
+    },
+    ifsc_code: {
+      type: String,
+    },
   },
-  aadhaar_number: { type: Number },
-  pane_card_number: { type: String },
-  driving_license: { type: String },
-  rc_number: { type: String },
-  driving_experience: {
-    total_experience: { type: String },
-    vehicle_type: { type: String },
+  aadhaar_number: {
+    type: Number,
   },
-  vehicle: {
-    vehicle_registration: { type: String },
-    permit_details: { type: String },
-    pending_e_challans: { type: String },
+  pane_card_number: {
+    type: String,
   },
-  ratingFeedback: { type: String },
-  driving_hour_limitation: {
-    limitations: { type: String },
-    total_work_hour: { type: String },
+  driving_license: {
+    type: String,
   },
-  tracking_monitoring: { type: String },
-  dl_img: { type: String },
-  vehicle_reg_img: { type: String },
-  insurance_img: { type: String },
-  road_tax_img: { type: String },
-  is_on_duty: { type: Boolean },
+  rc_number: {
+    type: String,
+  },
+  total_experience: {
+    type: String,
+  },
+  vehicle_type: {
+    type: String,
+  },
+  vehicle_model: {
+    type: String,
+  },
+  vehicle_category: {
+    type: String,
+  },
+  vehicle_number: {
+    type: String,
+  },
+  year_of_registration: {
+    type: String,
+  },
+  dl_img: {
+    type: String,
+  },
+  vehicle_reg_img: {
+    type: String,
+  },
+  vehicle_image: {
+    type: String,
+  },
+  profile_img: {
+    type: String,
+  },
+  aadhaar_img: {
+    type: String,
+  },
+  is_on_duty: {
+    type: Boolean,
+  },
+  carDetails: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Car'
+  },
+  isAvailable: {
+    type: Boolean,
+    default: true,
+  },
+  isVerified: {
+    type: Boolean,
+  },
+  driver_rating: {
+    type: String,
+  },
+  additional_information: [{
+    type: String,
+  }],
+  verification_text: {
+    type: String,
+  },
+  socketId: {
+    type: String,
+  },
+  on_going_ride_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Ride',
+  },
 }, { timestamps: true });
 
 export default mongoose.model('Driver', cabdriverSchema);
