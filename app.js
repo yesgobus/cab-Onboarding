@@ -7,17 +7,33 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import multer from 'multer';
-import dbCon from './lib/db.js'; // Ensure you use the .js extension
-import cabdriverRoute from './routes/cabdriver.js'; // Ensure you use the .js extension
+import dbCon from './lib/db.js'; 
+import cabdriverRoute from './routes/cabdriver.js';
+import swaggerUi from 'swagger-ui-express';
 import { Server as SocketIOServer } from 'socket.io';
 import {UserModel} from "./model/user.model.js"
 import cron from 'node-cron'
 import cabdriverController from './controller/cabdriver.js';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 
 const app = express();
 
 const server = http.createServer(app);
 const io = new SocketIOServer(server);
+
+// Dynamically import JSON file with assertions
+const swaggerDocument = await import('./public/swagger.json', {
+  assert: { type: 'json' }
+});
+
+// Serve Swagger API docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument.default));
 
 //setting io instance for req.app
 app.set('io',io);

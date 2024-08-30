@@ -30,6 +30,8 @@
     "nodemon": "^3.1.0",
     "otpless-node-js-auth-sdk": "^1.0.8",
     "path": "^0.12.7",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.7.5",
+    "swagger": "^0.7.5",
+    "swagger-ui-express": "^5.0.1"
   }
 }
