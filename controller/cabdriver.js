@@ -718,6 +718,7 @@ reqAcceptController: async(req,res) =>{
     //save otp if driver accepts the ride
 if(status_accept === true){
   ride.otp = (Math.floor(1000 + Math.random() * 9000)).toString();
+  ride.status = "Accepted"
 }
 
    const savedRide = await ride.save(); // Save changes to the ride
@@ -884,6 +885,7 @@ startRide : async (req,res)=>{
     // Update ride status
     ride.isStarted = true;
     ride.isSearching = false;
+    ride.status = "Ongoing"
     ride.startTime = new Date();
     await ride.save();
 
@@ -909,8 +911,6 @@ startRide : async (req,res)=>{
 completeRide : async (req,res) => { 
   try {
     const { ride_id } = req.body;
-    const io = req.app.get('io');
-
     // Fetch ride details
     const ride = await Ride.findById(ride_id)
     .populate('userId')
@@ -929,6 +929,7 @@ completeRide : async (req,res) => {
 
     //save complete time when we hit the api
     ride.completedTime = new Date();
+    ride.status = "Completed"
     await ride.save();
 
     // Calculate trip time
@@ -943,6 +944,7 @@ completeRide : async (req,res) => {
     const tripAmount = convertCurrencyStringToNumber(ride.trip_amount);
     const totalFare = Math.round(tripAmount + extraKmCharge) ;
 
+
     // Prepare response
     const response = {
       customer_image: ride.userId.profile_img || "https://plus.unsplash.com/premium_photo-1683121366070-5ceb7e007a97?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
@@ -953,6 +955,8 @@ completeRide : async (req,res) => {
       vehicle_number: cabdriver.vehicle_number,
       date_time_ride: ride.startTime,
       trip_time: formattedTripTime,
+      distance_travel: ride.trip_distance ,
+      distance_fare: ride.trip_amount,
       extra_km_charge: `₹ ${extraKmCharge}`,
       total_amount: `₹ ${totalFare}`
     };
@@ -974,9 +978,8 @@ completeRide : async (req,res) => {
     console.error(error);
     return res.status(500).json({ message: 'Internal server error' });
   }
+},
 
-
-}
 
 
 }

@@ -95,6 +95,9 @@ const rideSchema = new mongoose.Schema({
   },
 total_amount:{
   type:String
+},
+status:{
+  type:String
 }
 });
 

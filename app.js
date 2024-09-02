@@ -16,6 +16,7 @@ import cron from 'node-cron'
 import cabdriverController from './controller/cabdriver.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import Ride from './model/ride.model.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -114,3 +115,25 @@ io.on('connection', (socket) => {
     console.log('Client disconnected');
   });
 });
+
+// function to emit no drivers available to customers
+setInterval(async()=>{
+  try {
+    const rides = await Ride.find({
+      isSearching: false,
+      status: { $ne: 'unfulfilled' },
+      status_accept : false
+    });
+        for (const ride of rides) {
+        const customer = await UserModel.findById(ride.userId);
+        if (customer && customer.socketId) {
+          io.to(customer.socketId).emit('trip-driver-not-found', { message: 'All drivers have been notified or no driver is available.' });
+        }
+        ride.status = "unfulfilled"
+        await ride.save();
+      }
+    }
+   catch (error) {
+    console.error('Error in checkAvailableDrivers:', error.message);
+  }
+}, 20000)
