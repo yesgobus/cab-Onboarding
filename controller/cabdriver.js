@@ -865,7 +865,6 @@ goForPickup : async (req,res) =>{
     io.to(customer.socketId).emit('pickup-status', {
       status: "left",
       message: 'Driver has left for pickup',
-      data: {}
     });
 
     // Respond to the request
@@ -912,10 +911,8 @@ startRide : async (req,res)=>{
 
     // Emit ride start event
     io.to(customer.socketId).emit('pickup-status', {
-      success: true,
       status:"started",
       message: 'Your ride has started, please enjoy your ride',
-      data: {}
     });
 
     // Respond to the request
