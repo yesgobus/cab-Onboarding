@@ -20,4 +20,5 @@ router.post('/duty', authenticateToken, cabdriverController.updateDutyController
 router.post('/ride/accept', authenticateToken, cabdriverController.reqAcceptController);
 router.post('/ride/go_for_pickup', authenticateToken, cabdriverController.goForPickup);
 router.post('/ride/start_ride', authenticateToken, cabdriverController.startRide);
+router.post('/end-trip', cabdriverController.completeRide);
 export default router;

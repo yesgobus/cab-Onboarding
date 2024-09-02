@@ -6,6 +6,7 @@ import Ride from '../model/ride.model.js';
 import { UserModel } from '../model/user.model.js';
 import cron from 'node-cron';
 import moment from 'moment-timezone';
+import Car from '../model/car.model.js';
 
 function normalizeName(name) {
   console.log(name.toLowerCase().replace(/[^a-z\s]/g, '').trim())
@@ -18,6 +19,54 @@ console.log(normalizeName(name1))
   const normalized2 = normalizeName(name2);
   return normalized1.includes(normalized2) || normalized2.includes(normalized1);
 }
+
+function calculateDistance(lat1, lng1, lat2, lng2) {
+  // Implement distance calculation (Haversine formula or similar)
+  const R = 6371; // Radius of Earth in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLng = (lng2 - lng1) * (Math.PI / 180);
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+            Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c;
+  return distance;
+}
+
+function convertCurrencyStringToNumber(currencyString) {
+  // Remove the currency symbol and any commas or spaces
+  const numericString = currencyString.replace(/[^0-9.-]/g, '');
+  // Convert to number
+  return parseFloat(numericString);
+}
+
+function formatTripTime(milliseconds) {
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  let formattedDuration = '';
+
+  if (hours > 0) {
+    formattedDuration += `${hours} hour${hours > 1 ? 's' : ''}`;
+  }
+  if (minutes > 0) {
+    if (formattedDuration) {
+      formattedDuration += ' ';
+    }
+    formattedDuration += `${minutes} min${minutes > 1 ? 's' : ''}`;
+  }
+  if (seconds > 0 || formattedDuration === '') {
+    if (formattedDuration) {
+      formattedDuration += ' ';
+    }
+    formattedDuration += `${seconds} sec${seconds > 1 ? 's' : ''}`;
+  }
+
+  return formattedDuration;
+}
+
 
 const cabdriverController = {
   user_signup : async (req, res) => {
@@ -560,9 +609,10 @@ const cabdriverController = {
     // Update the driver's location
     const result = await cabdriverModel.updateOne(
       { _id: driver_id },
-      { $set: { 'location.coordinates': [parseFloat(driver_lat), parseFloat(driver_lng)],
+      { $set: { 'location.coordinates': [parseFloat(driver_lat), parseFloat(driver_lng)], 'location.type' : "Point",
                 'is_on_duty': true
-       } }
+       } },
+       {upsert: true}
     );
 
     // Check if the update was successful
@@ -696,6 +746,7 @@ const pickupTimeOptions = { hour: '2-digit', minute: '2-digit', hour12: true, ti
 const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOptions);
 
    const rideData = {
+    driver_image: driver.profile_img,
     driverName : `${driver.firstName} ${driver.lastName}`,
     driver_phone: driver.mobileNumber.toString(),
     pickup_time: pickupTimeString || "",
@@ -790,7 +841,7 @@ goForPickup : async (req,res) =>{
 
     // Emit pickup status to clients
     io.to(customer.socketId).emit('pickup-status', {
-      success: true,
+      status: "left",
       message: 'Driver has left for pickup',
       data: {}
     });
@@ -833,11 +884,13 @@ startRide : async (req,res)=>{
     // Update ride status
     ride.isStarted = true;
     ride.isSearching = false;
+    ride.startTime = new Date();
     await ride.save();
 
     // Emit ride start event
     io.to(customer.socketId).emit('pickup-status', {
       success: true,
+      status:"started",
       message: 'Your ride has started, please enjoy your ride',
       data: {}
     });
@@ -851,7 +904,81 @@ startRide : async (req,res)=>{
     // Respond with error status and message
     res.status(500).json({ status: false, message: 'Internal server error', data: {} });
   }
+},
+
+completeRide : async (req,res) => { 
+  try {
+    const { ride_id } = req.body;
+    const io = req.app.get('io');
+
+    // Fetch ride details
+    const ride = await Ride.findById(ride_id)
+    .populate('userId')
+    .exec();
+    if (!ride) {
+      return res.status(404).json({ message: 'Ride not found' });
+    }
+
+    // Fetch driver details
+    const cabdriver = await cabdriverModel.findById(ride.driverId)
+      .populate('carDetails') // Populate the carDetails field
+      .exec();
+    if (!cabdriver) {
+      return res.status(404).json({ message: 'Driver not found' });
+    }
+
+    //save complete time when we hit the api
+    ride.completedTime = new Date();
+    await ride.save();
+
+    // Calculate trip time
+    const tripTime = new Date(ride.completedTime) - new Date(ride.startTime);
+    const formattedTripTime = formatTripTime(tripTime)
+
+    // Calculate extra km charge
+    const extraDistance = calculateDistance(cabdriver.location.coordinates[0], cabdriver.location.coordinates[1], ride.drop_lat, ride.drop_lng); 
+    const extraKmCharge = Math.round(extraDistance * Number(cabdriver.carDetails[0].extra_km_fare));
+
+//  total fare
+    const tripAmount = convertCurrencyStringToNumber(ride.trip_amount);
+    const totalFare = Math.round(tripAmount + extraKmCharge) ;
+
+    // Prepare response
+    const response = {
+      customer_image: ride.userId.profile_img || "https://plus.unsplash.com/premium_photo-1683121366070-5ceb7e007a97?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      customer_name: `${ride.userId.firstName} ${ride.userId.lastName}`,
+      pickup_address: ride.pickup_address,
+      drop_address: ride.drop_address,
+      trip_id: ride._id,
+      vehicle_number: cabdriver.vehicle_number,
+      date_time_ride: ride.startTime,
+      trip_time: formattedTripTime,
+      extra_km_charge: `₹ ${extraKmCharge}`,
+      total_amount: `₹ ${totalFare}`
+    };
+
+    ride.trip_time = formattedTripTime;
+    ride.extra_km_charge= `₹ ${extraKmCharge}`;
+    ride.total_amount = `₹ ${totalFare}`;
+
+    await ride.save();
+
+    io.to(ride.userId.socketId).emit('pickup-status', {
+      success: true,
+      status:"completed",
+      message: 'Your ride has been completed',
+      data: {}
+    });
+    return res.status(200).json({status:true, message: "Ride is completed ",data:{...response}});
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+
+
 }
+
+
 }
 
 export default cabdriverController;

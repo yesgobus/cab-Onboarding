@@ -62,7 +62,7 @@ const rideSchema = new mongoose.Schema({
   },
   driverId:{
     type:mongoose.Schema.Types.ObjectId,
-    ref: 'Drivers'
+    ref: 'Driver'
   },
   otp:{
     type:String
@@ -80,7 +80,22 @@ const rideSchema = new mongoose.Schema({
   isStarted:{
     type:Boolean, 
     default: false
-  }
+  },
+   startTime:{
+    type:String
+  },
+  completedTime:{
+    type:String
+  },
+  trip_time:{
+    type:String
+  },
+  extra_km_charge:{
+    type:String
+  },
+total_amount:{
+  type:String
+}
 });
 
 // Create the Ride model

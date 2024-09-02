@@ -102,10 +102,10 @@ const cabdriverSchema = new mongoose.Schema({
   is_on_duty: {
     type: Boolean,
   },
-  carDetails: {
+  carDetails: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Car'
-  },
+  }],
   isAvailable: {
     type: Boolean,
     default: true,
