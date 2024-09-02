@@ -67,6 +67,27 @@ function formatTripTime(milliseconds) {
   return formattedDuration;
 }
 
+function formatDate(inputDateStr) {
+  // Convert the string to a Date object
+  const dateObj = new Date(inputDateStr);
+  
+  // Extract date components
+  const weekday = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+  const month = dateObj.toLocaleDateString('en-US', { month: 'short' });
+  const day = dateObj.getDate().toString().padStart(2, '0');
+  const year = dateObj.getFullYear();
+  const hours24 = dateObj.getHours();
+  const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+  
+  // Convert to 12-hour format
+  const isPM = hours24 >= 12;
+  const hours12 = hours24 % 12 || 12;
+  const period = isPM ? 'PM' : 'AM';
+  
+  // Format the final output
+  return `${weekday} ${month} ${day} ${year} ${hours12}:${minutes} ${period}`;
+}
+
 
 const cabdriverController = {
   user_signup : async (req, res) => {
@@ -954,7 +975,7 @@ completeRide : async (req,res) => {
       drop_address: ride.drop_address,
       trip_id: ride._id,
       vehicle_number: cabdriver.vehicle_number,
-      date_time_ride: ride.startTime,
+      date_time_ride: formatDate(ride.startTime),
       trip_time: formattedTripTime,
       distance_travel: ride.trip_distance ,
       distance_fare: ride.trip_amount,
@@ -969,10 +990,8 @@ completeRide : async (req,res) => {
     await ride.save();
 
     io.to(ride.userId.socketId).emit('pickup-status', {
-      success: true,
       status:"completed",
-      message: 'Your ride has been completed',
-      data: {}
+      message: 'Your ride has been completed'
     });
     return res.status(200).json({status:true, message: "Ride is completed ",data:{...response}});
   } catch (error) {
