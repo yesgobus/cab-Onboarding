@@ -911,6 +911,7 @@ startRide : async (req,res)=>{
 completeRide : async (req,res) => { 
   try {
     const { ride_id } = req.body;
+    const io = req.app.get('io');
     // Fetch ride details
     const ride = await Ride.findById(ride_id)
     .populate('userId')
@@ -976,7 +977,7 @@ completeRide : async (req,res) => {
     return res.status(200).json({status:true, message: "Ride is completed ",data:{...response}});
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({status:false, message: 'Internal server error', data:{} });
   }
 },
 
