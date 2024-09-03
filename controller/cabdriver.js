@@ -733,6 +733,11 @@ reqAcceptController: async(req,res) =>{
       throw new Error('Ride does not exist');
     }
 
+
+if(ride.status === "Cancelled"){
+  return res.status(200).json({status:false, message:"Ride has been cancelled by the user", data:{}})
+}
+
     // Update driver and ride status
     ride.status_accept = status_accept;
 
