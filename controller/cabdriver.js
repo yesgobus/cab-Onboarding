@@ -507,102 +507,175 @@ const cabdriverController = {
   }
 },
 
-  update_user_detail : async (req, res) => {
+  // update_user_detail : async (req, res) => {
+  //   try {
+  //     if (req.body.fullName && req.body.email && req.body.mobileNumber) {
+  //       const data = await cabdriverModel.findOneAndUpdate(
+  //         { _id: req.user },
+  //         {
+  //           fullName: req.body.fullName,
+  //           email: req.body.email,
+  //           mobileNumber: req.body.mobileNumber,
+  //         },
+  //         { new: true }
+  //       );
+        
+  //       return res.status(200).json({
+  //         status: true,
+  //         data,
+  //         message: "User detail updated successfully",
+  //       });
+  //     }
+  //     if (
+  //       !req.body.dl_img ||
+  //       req.body.dl_img === "" ||
+  //       !req.body.vehicle_reg_img ||
+  //       req.body.vehicle_reg_img === "" ||
+  //       !req.body.vehicle_image ||
+  //       req.body.vehicle_image === "" ||
+  //       !req.body.profile_img ||
+  //       req.body.profile_img === "" ||
+  //       !req.body.aadhaar_img ||
+  //       req.body.aadhaar_img === ""
+  //     ) {
+  //       return res.status(400).send({
+  //         status: false,
+  //         data: {},
+  //         message: "All document required",
+  //       });
+  //     }
+  //     if (
+  //       req.body.total_experience &&
+  //       req.body.vehicle_model &&
+  //       req.body.vehicle_category &&
+  //       req.body.vehicle_number &&
+  //       req.body.year_of_registration &&
+  //       req.body.fullName &&
+  //       req.body.email &&
+  //       req.body.mobileNumber &&
+  //       req.body.alternateNumber &&
+  //       req.body.bloodGroup &&
+  //       req.body.pincode &&
+  //       req.body.address &&
+  //       req.body.dob &&
+  //       req.body.user_type
+  //     ) {
+  //       const updateData = {
+  //         dl_img: req.body.dl_img ? await aws.uploadToS3(req.body.dl_img) : undefined,
+  //         vehicle_reg_img: req.body.vehicle_reg_img ? await aws.uploadToS3(req.body.vehicle_reg_img) : undefined,
+  //         vehicle_image: req.body.vehicle_image ? await aws.uploadToS3(req.body.vehicle_image) : undefined,
+  //         profile_img: req.body.profile_img ? await aws.uploadToS3(req.body.profile_img) : undefined,
+  //         aadhaar_img: req.body.aadhaar_img ? await aws.uploadToS3(req.body.aadhaar_img) : undefined,
+  //         total_experience: req.body.total_experience,
+  //         vehicle_model: req.body.vehicle_model,
+  //         vehicle_category: req.body.vehicle_category,
+  //         vehicle_number: req.body.vehicle_number,
+  //         year_of_registration: req.body.year_of_registration,
+  //         fullName: req.body.fullName,
+  //         email: req.body.email,
+  //         mobileNumber: req.body.mobileNumber,
+  //         alternateNumber: req.body.alternateNumber,
+  //         bloodGroup: req.body.bloodGroup,
+  //         pincode: req.body.pincode,
+  //         address: req.body.address,
+  //         dob: req.body.dob,
+  //         user_type: req.body.user_type,
+  //       };
+  //       const data = await cabdriverModel.findOneAndUpdate(
+  //         { _id: req.user },
+  //         { $set: updateData },  // Use $set to update or add fields
+  //         { new: true, runValidators: true }
+  //       );
+  //       console.log(data);
+  //       return res.status(200).send({
+  //         status: true,
+  //         data: {},
+  //         message: "User detail updated successfully",
+  //       });
+  //     }
+  
+  //     return res
+  //       .status(200)
+  //       .json({ status: true, data: {}, message: "No data updated" });
+  //   } catch (err) {
+  //     console.log(err);
+  //     return res.status(500).json({
+  //       status: false,
+  //       data: { errorMessage: err.message },
+  //       message: "server error",
+  //     });
+  //   }
+  // },
+
+  update_user_detail: async (req, res) => {
     try {
-      if (req.body.fullName && req.body.email && req.body.mobileNumber) {
-        const data = await cabdriverModel.findOneAndUpdate(
-          { _id: req.user },
-          {
-            fullName: req.body.fullName,
-            email: req.body.email,
-            mobileNumber: req.body.mobileNumber,
-          },
-          { new: true }
-        );
-        return res.status(200).send({
-          status: true,
-          data,
-          message: "User detail updated successfully",
-        });
-      }
-      if (
-        !req.body.dl_img ||
-        req.body.dl_img === "" ||
-        !req.body.vehicle_reg_img ||
-        req.body.vehicle_reg_img === "" ||
-        !req.body.vehicle_image ||
-        req.body.vehicle_image === "" ||
-        !req.body.profile_img ||
-        req.body.profile_img === "" ||
-        !req.body.aadhaar_img ||
-        req.body.aadhaar_img === ""
-      ) {
-        return res.status(400).send({
+      // Fetch the existing document to ensure it exists
+      const existingDocument = await cabdriverModel.findById(req.user);
+      
+      if (!existingDocument) {
+        return res.status(404).json({
           status: false,
           data: {},
-          message: "All document required",
-        });
-      }
-      if (
-        req.body.total_experience &&
-        req.body.vehicle_model &&
-        req.body.vehicle_category &&
-        req.body.vehicle_number &&
-        req.body.year_of_registration &&
-        req.body.fullName &&
-        req.body.email &&
-        req.body.mobileNumber &&
-        req.body.alternateNumber &&
-        req.body.bloodGroup &&
-        req.body.pincode &&
-        req.body.address &&
-        req.body.dob &&
-        req.body.user_type
-      ) {
-        const data = await cabdriverModel.findOneAndUpdate(
-          { _id: req.user },
-          {
-            dl_img: await aws.uploadToS3(req.body.dl_img),
-            vehicle_reg_img: await aws.uploadToS3(req.body.vehicle_reg_img),
-            vehicle_image: await aws.uploadToS3(req.body.vehicle_image),
-            profile_img: await aws.uploadToS3(req.body.profile_img),
-            aadhaar_img: await aws.uploadToS3(req.body.aadhaar_img),
-            total_experience: req.body.total_experience,
-            vehicle_model: req.body.vehicle_model,
-            vehicle_category: req.body.vehicle_category,
-            vehicle_number: req.body.vehicle_number,
-            year_of_registration: req.body.year_of_registration,
-            fullName: req.body.fullName,
-            email: req.body.email,
-            mobileNumber: req.body.mobileNumber,
-            alternateNumber: req.body.alternateNumber,
-            bloodGroup: req.body.bloodGroup,
-            pincode: req.body.pincode,
-            address: req.body.address,
-            dob: req.body.dob,
-            user_type:req.body.user_type
-          },
-          { new: true }
-        );
-        return res.status(200).send({
-          status: true,
-          data: {},
-          message: "User detail updated successfully",
+          message: "User not found",
         });
       }
   
-      return res
-        .status(200)
-        .send({ status: true, data: {}, message: "No data updated" });
+      // Prepare update object
+      const updateData = {};
+  
+      if (req.body.fullName) updateData.fullName = req.body.fullName;
+      if (req.body.email) updateData.email = req.body.email;
+      if (req.body.mobileNumber) updateData.mobileNumber = req.body.mobileNumber;
+  
+      if (req.body.dl_img) updateData.dl_img = await aws.uploadToS3(req.body.dl_img);
+      if (req.body.vehicle_reg_img) updateData.vehicle_reg_img = await aws.uploadToS3(req.body.vehicle_reg_img);
+      if (req.body.vehicle_image) updateData.vehicle_image = await aws.uploadToS3(req.body.vehicle_image);
+      if (req.body.profile_img) updateData.profile_img = await aws.uploadToS3(req.body.profile_img);
+      if (req.body.aadhaar_img) updateData.aadhaar_img = await aws.uploadToS3(req.body.aadhaar_img);
+  
+      if (req.body.total_experience) updateData.total_experience = req.body.total_experience;
+      if (req.body.vehicle_model) updateData.vehicle_model = req.body.vehicle_model;
+      if (req.body.vehicle_category) updateData.vehicle_category = req.body.vehicle_category;
+      if (req.body.vehicle_number) updateData.vehicle_number = req.body.vehicle_number;
+      if (req.body.year_of_registration) updateData.year_of_registration = req.body.year_of_registration;
+      if (req.body.alternateNumber) updateData.alternateNumber = req.body.alternateNumber;
+      if (req.body.bloodGroup) updateData.bloodGroup = req.body.bloodGroup;
+      if (req.body.pincode) updateData.pincode = req.body.pincode;
+      if (req.body.address) updateData.address = req.body.address;
+      if (req.body.dob) updateData.dob = req.body.dob;
+      if (req.body.user_type) updateData.user_type = req.body.user_type;
+  
+      if (Object.keys(updateData).length === 0) {
+        return res.status(200).json({
+          status: true,
+          data: {},
+          message: "No data to update",
+        });
+      }
+  
+      // Perform the update
+      const data = await cabdriverModel.findOneAndUpdate(
+        { _id: req.user },
+        { $set: updateData },
+        { new: true, runValidators: true }
+      );
+  
+      return res.status(200).json({
+        status: true,
+        data,
+        message: "User detail updated successfully",
+      });
+      
     } catch (err) {
-      return res.status(500).send({
+      console.error(err);
+      return res.status(500).json({
         status: false,
         data: { errorMessage: err.message },
-        message: "server error",
+        message: "Server error",
       });
     }
   },
-
+    
   document_upload : async (req, res) => {
   try {
     return await aws.uploadToS3(file.buffer);
