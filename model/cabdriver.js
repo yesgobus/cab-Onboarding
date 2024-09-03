@@ -129,6 +129,15 @@ const cabdriverSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Ride',
   },
+  alternateNumber:{
+    type:String
+  },
+  bloodGroup:{
+    type:String
+  },
+  user_type:{
+    type:String
+  }
 }, { timestamps: true });
 
 export default mongoose.model('Driver', cabdriverSchema);
