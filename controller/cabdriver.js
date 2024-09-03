@@ -739,9 +739,10 @@ reqAcceptController: async(req,res) =>{
     //save otp if driver accepts the ride
 if(status_accept === true){
   ride.otp = (Math.floor(1000 + Math.random() * 9000)).toString();
-  ride.status = "Accepted"
+  ride.status = "Accepted";
+  driver.on_going_ride_id = ride_id;
 }
-
+  await driver.save();
    const savedRide = await ride.save(); // Save changes to the ride
 
    function parseDuration(duration) {
@@ -768,7 +769,7 @@ const pickupTimeOptions = { hour: '2-digit', minute: '2-digit', hour12: true, ti
 const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOptions);
 
    const rideData = {
-    driver_image: driver.profile_img,
+    driver_image: driver.profile_img || "https://images.unsplash.com/photo-1504620776737-8965fde5c079?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     driverName : `${driver.firstName} ${driver.lastName}`,
     driver_phone: driver.mobileNumber.toString(),
     pickup_time: pickupTimeString || "",
@@ -798,9 +799,10 @@ const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOption
   if (status_accept === true) {
     // io.emit('trip-driver-accepted', rideData);
     io.to(customer.socketId).emit('trip-driver-accepted', rideData)
-  } else if (status_accept===false && savedRide.isSearching === false) {
-    io.to(customer.socketId).emit('trip-driver-not-found', {message:"All drivers have been notified or no driver is available."});
-  }
+  } 
+  // else if (status_accept===false && savedRide.isSearching === false) {
+  //   io.to(customer.socketId).emit('trip-driver-not-found', {message:"All drivers have been notified or no driver is available."});
+  // }
 
     res.status(200).json({
       status: true,
@@ -951,6 +953,12 @@ completeRide : async (req,res) => {
     ride.status = "Completed"
     await ride.save();
 
+    // Remove on_going_ride_id from driver
+    await cabdriverModel.updateOne(
+      { _id: ride.driverId },
+      { $unset: { on_going_ride_id: "" } }
+    );
+
     // Calculate trip time
     const tripTime = new Date(ride.completedTime) - new Date(ride.startTime);
     const formattedTripTime = formatTripTime(tripTime)
@@ -997,7 +1005,96 @@ completeRide : async (req,res) => {
   }
 },
 
+configuration : async (req,res)=>{
+  try {
+    const  driver_id  = req.user;
+    const driver = await cabdriverModel.findById(driver_id);
 
+    if (!driver) {
+      throw new Error("Driver does not exist");
+    }
+
+    // Extract fields from the driver model
+    const {
+      dl_img,
+      vehicle_reg_img,
+      vehicle_image,
+      profile_img,
+      aadhaar_img,
+      total_experience,
+      vehicle_model,
+      vehicle_category,
+      vehicle_number,
+      year_of_registration,
+      fullName,
+      email,
+      mobileNumber,
+      alternateNumber,
+      bloodGroup,
+      pincode,
+      address,
+      dob,
+      user_type
+    } = driver;
+
+    // Determine onboarding_complete based on field presence
+    const onboarding_complete = [
+      dl_img,
+      vehicle_reg_img,
+      vehicle_image,
+      profile_img,
+      aadhaar_img,
+      total_experience,
+      vehicle_model,
+      vehicle_category,
+      vehicle_number,
+      year_of_registration,
+      fullName,
+      email,
+      mobileNumber,
+      alternateNumber,
+      bloodGroup,
+      pincode,
+      address,
+      dob,
+      user_type
+    ].every(field => field && field.toString().trim() !== '');
+
+    const response = {
+      is_on_duty: driver.is_on_duty,
+      onboarding_complete,
+      profile_img: driver.profile_img,
+      name: driver.firstName + " " + driver.lastName
+    };
+
+    return res.status(200).json({ status: true, message: "Configurations Fetched", data: response });
+  } catch (error) {
+    return res.status(500).json({ status: false, message: 'Internal server error', data: {error} });
+  }
+},
+
+delete : async (req,res) =>{
+  try {
+    // Extract driver_id from req.user
+    const  driver_id  = req.user;
+    
+    // Delete the driver account from the database
+    const result = await cabdriverModel.findByIdAndDelete(driver_id);
+
+    // Check if the driver was found and deleted
+    if (!result) {
+      return res.status(404).json({ status: false, message: 'Driver not found', data: {} });
+    }
+
+    // Respond with a success message
+    return res.status(200).json({ status: true, message: 'Account deleted successfully', data: {} });
+
+  } catch (error) {
+    // Handle any unexpected errors
+    console.error('Error deleting account:', error);
+    return res.status(500).json({ status: false, message: 'Internal server error', data: {} });
+  }
+},
 
 }
 

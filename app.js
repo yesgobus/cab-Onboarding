@@ -121,15 +121,15 @@ setInterval(async()=>{
   try {
     const rides = await Ride.find({
       isSearching: false,
-      status: { $ne: 'unfulfilled' },
-      status_accept : false
+      status: 'Pending',
+      status_accept: false
     });
         for (const ride of rides) {
         const customer = await UserModel.findById(ride.userId);
         if (customer && customer.socketId) {
           io.to(customer.socketId).emit('trip-driver-not-found', { message: 'All drivers have been notified or no driver is available.' });
         }
-        ride.status = "unfulfilled"
+        ride.status = "Unfulfilled"
         await ride.save();
       }
     }

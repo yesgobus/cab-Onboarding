@@ -21,4 +21,6 @@ router.post('/ride/accept', authenticateToken, cabdriverController.reqAcceptCont
 router.post('/ride/go_for_pickup', authenticateToken, cabdriverController.goForPickup);
 router.post('/ride/start_ride', authenticateToken, cabdriverController.startRide);
 router.post('/end-trip', cabdriverController.completeRide);
+router.get('/configuration', authenticateToken, cabdriverController.configuration);
+router.delete('/delete', authenticateToken, cabdriverController.delete);
 export default router;

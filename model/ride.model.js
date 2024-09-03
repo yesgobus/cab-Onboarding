@@ -6,6 +6,9 @@ const rideSchema = new mongoose.Schema({
     type: String, 
     required: true
   },
+  booking_date :{
+    type:String
+  },
   user_name: {
     type: String,
     required: true
