@@ -57,9 +57,6 @@ const categorySchema = new mongoose.Schema({
       },
     
     inclusions:{
-      included_kms:{
-        type:String
-      },
       pickup_drop:{
         type:String
       },
