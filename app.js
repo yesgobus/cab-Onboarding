@@ -17,6 +17,7 @@ import cabdriverController from './controller/cabdriver.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import Ride from './model/ride.model.js';
+import cabdriverModel from './model/cabdriver.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
