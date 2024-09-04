@@ -105,7 +105,7 @@ io.on('connection', (socket) => {
 
       if(customer.on_going_ride_id){
         const ongoingRide = customer.on_going_ride_id;
-  
+        console.log("Emitting to customer", ongoingRide.toObject());
         io.to(customer.socketId).emit('trip-driver-accepted', { ride_id: customer.on_going_ride_id._id, ...ongoingRide.toObject() });
        }
        else{
