@@ -893,8 +893,8 @@ const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOption
     });
   } 
   else if (status_accept===false) {
-    savedRide.driverId = "";
-    savedRide.save();
+    ride.driverId = "";
+    ride.save();
     res.status(200).json({
       status: true,
       message: 'Ride Rejeceted',
