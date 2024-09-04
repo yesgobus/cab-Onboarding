@@ -7,7 +7,7 @@ import { UserModel } from '../model/user.model.js';
 import cron from 'node-cron';
 import moment from 'moment-timezone';
 import Car from '../model/car.model.js';
-import mongoose from 'mongoose';
+import {ObjectId} from 'mongoose';
 
 function normalizeName(name) {
   console.log(name.toLowerCase().replace(/[^a-z\s]/g, '').trim())
@@ -809,7 +809,7 @@ reqAcceptController: async(req,res) =>{
     }
 
     // Convert string to ObjectId
-    const driverIdAsObjectId = mongoose.Types.ObjectId(driver_id);
+    const driverIdAsObjectId = new ObjectId(driver_id);
 
 
 if(ride.status !== "Pending" || !driverIdAsObjectId.equals(ride.driverId)){
