@@ -7,7 +7,6 @@ import { UserModel } from '../model/user.model.js';
 import cron from 'node-cron';
 import moment from 'moment-timezone';
 import Car from '../model/car.model.js';
-import {ObjectId} from 'mongoose';
 
 function normalizeName(name) {
   console.log(name.toLowerCase().replace(/[^a-z\s]/g, '').trim())
@@ -809,11 +808,11 @@ reqAcceptController: async(req,res) =>{
     }
 
     // Convert string to ObjectId
-    const driverIdAsObjectId = new ObjectId(driver_id);
+    const driverIdString = ride.driverId.toString();
 
 
-if(ride.status !== "Pending" || driverIdAsObjectId !== ride.driverId){
-  console.log(ride.driverId);
+if(ride.status !== "Pending" || driverIdString !== driver_id){
+  console.log(driverIdString);
   console.log(driver_id);
   return res.status(200).json({status:false, message:"Ride has been cancelled by the user or transferred to other driver", data:{}})
 }
