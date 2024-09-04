@@ -6,6 +6,7 @@ import Ride from '../model/ride.model.js';
 import { UserModel } from '../model/user.model.js';
 import cron from 'node-cron';
 import moment from 'moment-timezone';
+import Category from '../model/category.model.js';
 
 function normalizeName(name) {
   console.log(name.toLowerCase().replace(/[^a-z\s]/g, '').trim())
