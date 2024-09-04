@@ -797,7 +797,7 @@ reqAcceptController: async(req,res) =>{
     // Find the driver and ride
     
     const ride = await Ride.findById(ride_id);
-    const driver = await cabdriverModel.findById(ride.driverId);
+    const driver = await cabdriverModel.findById(driver_id);
 
     if (!driver) {
       throw new Error('Driver not found');
@@ -808,7 +808,7 @@ reqAcceptController: async(req,res) =>{
     }
 
 
-if(ride.status !== "Pending"){
+if(ride.status !== "Pending" || driver_id !== ride.driverId){
   return res.status(200).json({status:false, message:"Ride has been cancelled by the user or transferred to other driver", data:{}})
 }
 
