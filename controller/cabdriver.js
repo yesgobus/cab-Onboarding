@@ -894,7 +894,7 @@ const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOption
   } 
   else if (status_accept===false) {
     res.status(200).json({
-      status: false,
+      status: true,
       message: 'Ride Rejeceted',
       data: `Ride Rejected`,
     });
