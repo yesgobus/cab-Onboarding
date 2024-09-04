@@ -809,6 +809,8 @@ reqAcceptController: async(req,res) =>{
 
 
 if(ride.status !== "Pending" || driver_id !== ride.driverId){
+  console.log(ride.driverId);
+  console.log(driver_id);
   return res.status(200).json({status:false, message:"Ride has been cancelled by the user or transferred to other driver", data:{}})
 }
 
