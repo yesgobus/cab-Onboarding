@@ -812,7 +812,7 @@ reqAcceptController: async(req,res) =>{
     const driverIdAsObjectId = new ObjectId(driver_id);
 
 
-if(ride.status !== "Pending" || !driverIdAsObjectId.equals(ride.driverId)){
+if(ride.status !== "Pending" || driverIdAsObjectId !== ride.driverId){
   console.log(ride.driverId);
   console.log(driver_id);
   return res.status(200).json({status:false, message:"Ride has been cancelled by the user or transferred to other driver", data:{}})
