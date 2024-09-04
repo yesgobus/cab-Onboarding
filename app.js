@@ -132,6 +132,12 @@ io.on('connection', (socket) => {
         const pickupTimeOptions = { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' };
         const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOptions);
   
+        const statusMessages = {
+          PickingUp: "Driver has left for pickup",
+          Ongoing: "Your ride has started, please enjoy your ride",
+          Completed:"Your ride has been completed, Thankyou For Riding with us."
+        };
+
         const rideData = {
           ride_id: ongoingRide._id,
           driver_image: driver.profile_img || "https://images.unsplash.com/photo-1504620776737-8965fde5c079?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
@@ -151,7 +157,8 @@ io.on('connection', (socket) => {
           pickup_distance: ongoingRide.pickup_distance || "",
           pickup_duration: ongoingRide.pickup_duration || "",
           otp: ongoingRide.otp,
-          status: ongoingRide.status
+          status: ongoingRide.status,
+          status_message: statusMessages[ongoingRide.status] || ""
         };
   
         console.log(rideData);
