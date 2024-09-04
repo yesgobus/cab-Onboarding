@@ -105,8 +105,41 @@ io.on('connection', (socket) => {
 
       if(customer.on_going_ride_id){
         const ongoingRide = customer.on_going_ride_id;
+
+        const driver = await cabdriverModel.findById(ongoingRide.driverId);
+
+        // Parse pickup duration and calculate pickup time
+const durationMs = parseDuration(ongoingRide.pickup_duration);
+const pickupDate = new Date(date.getTime() + durationMs);
+
+// Format pickup time
+const pickupTimeOptions = { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' };
+const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOptions);
+
+        const rideData = {
+          driver_image: driver.profile_img || "https://images.unsplash.com/photo-1504620776737-8965fde5c079?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+          driverName: `${driver.firstName} ${driver.lastName}`,
+          driver_phone: driver.mobileNumber.toString(),
+          pickup_time: pickupTimeString || "",
+          user_name: ongoingRide.user_name,
+          trip_distance: ongoingRide.trip_distance || "",
+          trip_duration: ongoingRide.trip_duration || "",
+          trip_amount: ongoingRide.trip_amount || "",
+          pickup_address: ongoingRide.pickup_address ? ongoingRide.pickup_address.toString() : "",
+          pickup_lat: ongoingRide.pickup_lat ? ongoingRide.pickup_lat.toString() : "",
+          pickup_lng: ongoingRide.pickup_lng ? ongoingRide.pickup_lng.toString() : "",
+          drop_address: ongoingRide.drop_address ? ongoingRide.drop_address.toString() : "",
+          drop_lat: ongoingRide.drop_lat ? ongoingRide.drop_lat.toString() : "",
+          drop_lng: ongoingRide.drop_lng ? ongoingRide.drop_lng.toString() : "",
+          pickup_distance: ongoingRide.pickup_distance || "",
+          pickup_duration: ongoingRide.pickup_duration || "",
+          otp: ongoingRide.otp,
+          status: ongoingRide.status
+        };
+
+        console.log(rideData);
   
-        io.to(customer.socketId).emit('restart-ride-status', { ride_id: customer.on_going_ride_id._id, ...ongoingRide.toObject() });
+        io.to(customer.socketId).emit('restart-ride-status', rideData);
        }
        else{
         console.log("No ongoing ride for the registered customer")
