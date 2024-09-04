@@ -104,7 +104,7 @@ const cabdriverSchema = new mongoose.Schema({
   },
   carDetails: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Car'
+    ref: 'categories'
   }],
   isAvailable: {
     type: Boolean,
