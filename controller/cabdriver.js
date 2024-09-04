@@ -889,12 +889,12 @@ const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOption
     res.status(200).json({
       status: true,
       message: 'Ride Accepted',
-      data: `Ride Accepted: ${status_accept}`,
+      data: `Ride Accepted`,
     });
   } 
   else if (status_accept===false) {
     res.status(200).json({
-      status: false,
+      status: true,
       message: 'Ride Rejeceted',
       data: `Ride Rejected`,
     });
