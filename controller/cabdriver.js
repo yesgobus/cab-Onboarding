@@ -7,6 +7,7 @@ import { UserModel } from '../model/user.model.js';
 import cron from 'node-cron';
 import moment from 'moment-timezone';
 import Car from '../model/car.model.js';
+import mongoose from 'mongoose';
 
 function normalizeName(name) {
   console.log(name.toLowerCase().replace(/[^a-z\s]/g, '').trim())
