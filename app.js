@@ -131,6 +131,7 @@ setInterval(async()=>{
         for (const ride of rides) {
         const customer = await UserModel.findById(ride.userId);
         if (customer && customer.socketId) {
+          console.log("firing to", customer)
           io.to(customer.socketId).emit('trip-driver-not-found', { message: 'All drivers have been notified or no driver is available.' });
         }
         ride.status = "Unfulfilled"
