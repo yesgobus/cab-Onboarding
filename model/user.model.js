@@ -24,7 +24,11 @@ const userSchema = new Schema(
     },
     profile_img:{
         type:String
-    }
+    },
+    on_going_ride_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Ride',
+      },
     },
 
     {

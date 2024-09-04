@@ -96,8 +96,22 @@ io.on('connection', (socket) => {
   // Handle customer registration
   socket.on('register-customer', async (customer_id) => {
     try {
-      // Update driver with socketId
-      await UserModel.updateOne({ _id: customer_id }, { $set: { socketId: socket.id } });
+      // Update customer with socketId
+     const customer = await UserModel.findOneAndUpdate(
+        { _id: customer_id },
+        { $set: { socketId: socket.id } },
+        { new: true }
+      ).populate('on_going_ride_id').exec();
+
+      if(customer.on_going_ride_id){
+        const ongoingRide = customer.on_going_ride_id;
+  
+        io.to(customer.socketId).emit('restart-ride-status', { ride_id: customer.on_going_ride_id._id, ...ongoingRide.toObject() });
+       }
+       else{
+        console.log("No ongoing ride for the registered customer")
+       }
+
       console.log(`Customer ${customer_id} registered with socketId ${socket.id}`);
     } catch (error) {
       console.error('Error registering customer:', error);

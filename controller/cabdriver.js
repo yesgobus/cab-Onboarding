@@ -881,6 +881,9 @@ const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOption
   }
 
   if (status_accept === true) {
+
+    customer.on_going_ride_id = savedRide._id;
+    await customer.save();
     // io.emit('trip-driver-accepted', rideData);
     io.to(customer.socketId).emit('trip-driver-accepted', rideData)
   } 
@@ -950,7 +953,7 @@ goForPickup : async (req,res) =>{
 
     // Emit pickup status to clients
     io.to(customer.socketId).emit('pickup-status', {
-      status: "left",
+      status: ride.status,
       message: 'Driver has left for pickup',
     });
 
@@ -998,7 +1001,7 @@ startRide : async (req,res)=>{
 
     // Emit ride start event
     io.to(customer.socketId).emit('pickup-status', {
-      status:"started",
+      status: ride.status,
       message: 'Your ride has started, please enjoy your ride',
     });
 
@@ -1041,6 +1044,11 @@ completeRide : async (req,res) => {
     // Remove on_going_ride_id from driver
     await cabdriverModel.updateOne(
       { _id: ride.driverId },
+      { $unset: { on_going_ride_id: "" } }
+    );
+     // Remove on_going_ride_id from customer
+     await UserModel.updateOne(
+      { _id: ride.userId },
       { $unset: { on_going_ride_id: "" } }
     );
 
