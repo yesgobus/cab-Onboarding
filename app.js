@@ -98,25 +98,40 @@ io.on('connection', (socket) => {
   socket.on('register-customer', async (customer_id) => {
     try {
       // Update customer with socketId
-     const customer = await UserModel.findOneAndUpdate(
+      const customer = await UserModel.findOneAndUpdate(
         { _id: customer_id },
         { $set: { socketId: socket.id } },
         { new: true }
-      ).populate('on_going_ride_id').exec();
-
-      if(customer.on_going_ride_id){
+      ).populate({
+        path: 'on_going_ride_id',
+        populate: {
+          path: 'driverId', // Assuming 'driverId' is the reference in the ongoing ride
+          model: 'Driver' // Ensure this is the correct model name
+        }
+      }).exec();
+  
+      if (customer.on_going_ride_id) {
         const ongoingRide = customer.on_going_ride_id;
-
-        const driver = await cabdriverModel.findById(ongoingRide.driverId);
-
+        const driver = ongoingRide.driverId;
+  
+        // Function to parse duration and calculate milliseconds
+        function parseDuration(duration) {
+          const hoursMatch = duration.match(/(\d+)\s*hours?/);
+          const minsMatch = duration.match(/(\d+)\s*mins?/);
+          const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
+          const mins = minsMatch ? parseInt(minsMatch[1]) : 0;
+          return (hours * 60 * 60 * 1000) + (mins * 60 * 1000); // milliseconds
+        }
+  
         // Parse pickup duration and calculate pickup time
-const durationMs = parseDuration(ongoingRide.pickup_duration);
-const pickupDate = new Date(date.getTime() + durationMs);
-
-// Format pickup time
-const pickupTimeOptions = { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' };
-const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOptions);
-
+        const durationMs = parseDuration(ongoingRide.pickup_duration);
+        const pickupDate = new Date(); // Use current date or adjust as needed
+        pickupDate.setTime(pickupDate.getTime() + durationMs);
+  
+        // Format pickup time
+        const pickupTimeOptions = { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' };
+        const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOptions);
+  
         const rideData = {
           driver_image: driver.profile_img || "https://images.unsplash.com/photo-1504620776737-8965fde5c079?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           driverName: `${driver.firstName} ${driver.lastName}`,
@@ -137,15 +152,15 @@ const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOption
           otp: ongoingRide.otp,
           status: ongoingRide.status
         };
-
+  
         console.log(rideData);
   
+        // Emit the ride data
         io.to(customer.socketId).emit('restart-ride-status', rideData);
-       }
-       else{
-        console.log("No ongoing ride for the registered customer")
-       }
-
+      } else {
+        console.log("No ongoing ride for the registered customer");
+      }
+  
       console.log(`Customer ${customer_id} registered with socketId ${socket.id}`);
     } catch (error) {
       console.error('Error registering customer:', error);
