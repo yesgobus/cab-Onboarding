@@ -185,36 +185,24 @@ io.on('connection', (socket) => {
 });
 
 // function to emit no drivers available to customers
-setInterval(async () => {
+setInterval(async()=>{
   try {
-    // Track notified drivers
-    const notifiedDrivers = new Set();
-
-    // Find rides with no drivers available
     const rides = await Ride.find({
       isSearching: false,
       status: 'Pending',
-      status_accept: false,
-      notificationSent: false
+      status_accept: false
     });
-
-    for (const ride of rides) {
-      const customer = await UserModel.findById(ride.userId);
-      if (customer && customer.socketId) {
-        // Only send notification if the driver hasn't been notified in this interval
-        if (!notifiedDrivers.has(customer.socketId)) {
-          console.log("Firing to", customer);
+        for (const ride of rides) {
+        const customer = await UserModel.findById(ride.userId);
+        if (customer && customer.socketId) {
+          console.log("firing to", customer)
           io.to(customer.socketId).emit('trip-driver-not-found', { message: 'All drivers have been notified or no driver is available.' });
-          notifiedDrivers.add(customer.socketId); // Mark driver as notified
         }
+        ride.status = "Unfulfilled"
+        await ride.save();
       }
-
-      // Update ride status and notification flag
-      ride.status = "Unfulfilled";
-      ride.notificationSent = true; // Set flag to true to avoid re-sending
-      await ride.save();
     }
-  } catch (error) {
+   catch (error) {
     console.error('Error in checkAvailableDrivers:', error.message);
   }
-}, 20000);
+}, 20000)
