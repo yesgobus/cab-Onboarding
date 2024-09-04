@@ -945,6 +945,7 @@ goForPickup : async (req,res) =>{
 
     // Update the ride status
     ride.can_be_cancelled = false;
+    ride.status = "PickingUp"
     await ride.save();
 
     // Emit pickup status to clients
