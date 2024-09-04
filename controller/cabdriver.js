@@ -886,20 +886,19 @@ const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOption
     await customer.save();
     // io.emit('trip-driver-accepted', rideData);
     io.to(customer.socketId).emit('trip-driver-accepted', rideData)
+    res.status(200).json({
+      status: true,
+      message: 'Ride Accepted',
+      data: `Ride Accepted: ${status_accept}`,
+    });
   } 
   else if (status_accept===false) {
     res.status(200).json({
       status: false,
-      message: 'Request completed',
+      message: 'Ride Rejeceted',
       data: `Ride Rejected`,
     });
   }
-
-    res.status(200).json({
-      status: true,
-      message: 'Request completed',
-      data: `Ride Accepted: ${status_accept}`,
-    });
   } catch (error) {
     res.status(500).json({
       status: false,
