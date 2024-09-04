@@ -133,6 +133,7 @@ io.on('connection', (socket) => {
         const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOptions);
   
         const rideData = {
+          ride_id: ongoingRide._id,
           driver_image: driver.profile_img || "https://images.unsplash.com/photo-1504620776737-8965fde5c079?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           driverName: `${driver.firstName} ${driver.lastName}`,
           driver_phone: driver.mobileNumber.toString(),
@@ -189,7 +190,8 @@ setInterval(async()=>{
     const rides = await Ride.find({
       isSearching: false,
       status: 'Pending',
-      status_accept: false
+      status_accept: false,
+      notificationSent: false
     });
         for (const ride of rides) {
         const customer = await UserModel.findById(ride.userId);
@@ -198,6 +200,7 @@ setInterval(async()=>{
           io.to(customer.socketId).emit('trip-driver-not-found', { message: 'All drivers have been notified or no driver is available.' });
         }
         ride.status = "Unfulfilled"
+        ride.notificationSent = true
         await ride.save();
       }
     }
