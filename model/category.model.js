@@ -5,6 +5,12 @@ const categorySchema = new mongoose.Schema({
         type:String,
         required:true
     },
+    category_type:{
+      type:String,
+      enum:['ride','transport','both'],
+      default:'both',
+      required:true
+    },
       image_url:{
         type:String
       },
@@ -65,16 +71,29 @@ const categorySchema = new mongoose.Schema({
       },
       toll_charges:{
         type:Boolean
-      }
+      },
+      loading_time:{
+        type:String
+      },
     },
     tagline:{
       type:String
     },
     verification:{
       type:String
-    }
-    
-
+    },
+    highlights:[{
+      type:String
+    }],
+    capacity_info:{
+      type:String
+    },
+    goods_types: [
+      {
+        name: { type: String, required: true },
+        description: { type: String, required: true }
+      }
+    ]
 });
 
 const Category = mongoose.model('categories', categorySchema);

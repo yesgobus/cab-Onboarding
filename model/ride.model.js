@@ -54,18 +54,22 @@ const rideSchema = new mongoose.Schema({
   },
   pickup_duration: {
     type: String,
-
   },
   status_accept:{
-    type:Boolean
-  },  
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Users' },
-  isSearching :{
-    type:Boolean
+    type:Boolean,
+    default: false
+  },
+  userId:{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Users'
   },
   driverId:{
     type:mongoose.Schema.Types.ObjectId,
     ref: 'Driver'
+  },
+  isSearching :{
+    type:Boolean,
+    default: true
   },
   otp:{
     type:String
@@ -75,7 +79,7 @@ const rideSchema = new mongoose.Schema({
   },
   driver_phone:{
     type:String
-  },
+  },  
   can_be_cancelled: {
     type:Boolean,
     default: true
@@ -84,7 +88,7 @@ const rideSchema = new mongoose.Schema({
     type:Boolean, 
     default: false
   },
-   startTime:{
+  startTime:{
     type:String
   },
   completedTime:{
@@ -102,6 +106,10 @@ total_amount:{
 status:{
   type:String
 },
+is_transport_ride:{
+  type:Boolean,
+  default:false
+}
 
 });
 

@@ -7,6 +7,7 @@ import { UserModel } from '../model/user.model.js';
 import cron from 'node-cron';
 import moment from 'moment-timezone';
 import Category from '../model/category.model.js';
+import transportRide from '../model/transport.ride.model.js';
 
 function normalizeName(name) {
   console.log(name.toLowerCase().replace(/[^a-z\s]/g, '').trim())
@@ -507,106 +508,6 @@ const cabdriverController = {
   }
 },
 
-  // update_user_detail : async (req, res) => {
-  //   try {
-  //     if (req.body.fullName && req.body.email && req.body.mobileNumber) {
-  //       const data = await cabdriverModel.findOneAndUpdate(
-  //         { _id: req.user },
-  //         {
-  //           fullName: req.body.fullName,
-  //           email: req.body.email,
-  //           mobileNumber: req.body.mobileNumber,
-  //         },
-  //         { new: true }
-  //       );
-        
-  //       return res.status(200).json({
-  //         status: true,
-  //         data,
-  //         message: "User detail updated successfully",
-  //       });
-  //     }
-  //     if (
-  //       !req.body.dl_img ||
-  //       req.body.dl_img === "" ||
-  //       !req.body.vehicle_reg_img ||
-  //       req.body.vehicle_reg_img === "" ||
-  //       !req.body.vehicle_image ||
-  //       req.body.vehicle_image === "" ||
-  //       !req.body.profile_img ||
-  //       req.body.profile_img === "" ||
-  //       !req.body.aadhaar_img ||
-  //       req.body.aadhaar_img === ""
-  //     ) {
-  //       return res.status(400).send({
-  //         status: false,
-  //         data: {},
-  //         message: "All document required",
-  //       });
-  //     }
-  //     if (
-  //       req.body.total_experience &&
-  //       req.body.vehicle_model &&
-  //       req.body.vehicle_category &&
-  //       req.body.vehicle_number &&
-  //       req.body.year_of_registration &&
-  //       req.body.fullName &&
-  //       req.body.email &&
-  //       req.body.mobileNumber &&
-  //       req.body.alternateNumber &&
-  //       req.body.bloodGroup &&
-  //       req.body.pincode &&
-  //       req.body.address &&
-  //       req.body.dob &&
-  //       req.body.user_type
-  //     ) {
-  //       const updateData = {
-  //         dl_img: req.body.dl_img ? await aws.uploadToS3(req.body.dl_img) : undefined,
-  //         vehicle_reg_img: req.body.vehicle_reg_img ? await aws.uploadToS3(req.body.vehicle_reg_img) : undefined,
-  //         vehicle_image: req.body.vehicle_image ? await aws.uploadToS3(req.body.vehicle_image) : undefined,
-  //         profile_img: req.body.profile_img ? await aws.uploadToS3(req.body.profile_img) : undefined,
-  //         aadhaar_img: req.body.aadhaar_img ? await aws.uploadToS3(req.body.aadhaar_img) : undefined,
-  //         total_experience: req.body.total_experience,
-  //         vehicle_model: req.body.vehicle_model,
-  //         vehicle_category: req.body.vehicle_category,
-  //         vehicle_number: req.body.vehicle_number,
-  //         year_of_registration: req.body.year_of_registration,
-  //         fullName: req.body.fullName,
-  //         email: req.body.email,
-  //         mobileNumber: req.body.mobileNumber,
-  //         alternateNumber: req.body.alternateNumber,
-  //         bloodGroup: req.body.bloodGroup,
-  //         pincode: req.body.pincode,
-  //         address: req.body.address,
-  //         dob: req.body.dob,
-  //         user_type: req.body.user_type,
-  //       };
-  //       const data = await cabdriverModel.findOneAndUpdate(
-  //         { _id: req.user },
-  //         { $set: updateData },  // Use $set to update or add fields
-  //         { new: true, runValidators: true }
-  //       );
-  //       console.log(data);
-  //       return res.status(200).send({
-  //         status: true,
-  //         data: {},
-  //         message: "User detail updated successfully",
-  //       });
-  //     }
-  
-  //     return res
-  //       .status(200)
-  //       .json({ status: true, data: {}, message: "No data updated" });
-  //   } catch (err) {
-  //     console.log(err);
-  //     return res.status(500).json({
-  //       status: false,
-  //       data: { errorMessage: err.message },
-  //       message: "server error",
-  //     });
-  //   }
-  // },
-
   update_user_detail: async (req, res) => {
     try {
       // Fetch the existing document to ensure it exists
@@ -786,7 +687,7 @@ const cabdriverController = {
 reqAcceptController: async(req,res) =>{
   try {
     const driver_id = req.user; // Ensure req.user is correctly set by authentication middleware
-    const { ride_id, status_accept } = req.body;
+    const { ride_id, status_accept, is_transport_ride } = req.body;
     const io = req.app.get('io');
 
     // Validate input
@@ -795,9 +696,12 @@ reqAcceptController: async(req,res) =>{
     }
 
     // Find the driver and ride
-    
-    const ride = await Ride.findById(ride_id);
-    const driver = await cabdriverModel.findById(driver_id);
+    let ride;
+    if (is_transport_ride === false) {
+      ride = await Ride.findById(ride_id);
+    } else {
+      ride = await transportRide.findById(ride_id);
+    }
 
     if (!driver) {
       throw new Error('Driver not found');
@@ -812,8 +716,6 @@ reqAcceptController: async(req,res) =>{
 
 
 if(ride.status !== "Pending" || driverIdString !== driver_id){
-  console.log(driverIdString);
-  console.log(driver_id);
   return res.status(200).json({status:false, message:"Ride has been cancelled by the user or transferred to other driver", data:{}})
 }
 
@@ -894,7 +796,7 @@ const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOption
   } 
   else if (status_accept===false) {
     ride.driverId = "";
-    ride.save();
+   await ride.save();
     res.status(200).json({
       status: true,
       message: 'Ride Rejeceted',
