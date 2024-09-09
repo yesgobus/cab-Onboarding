@@ -18,6 +18,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import Ride from './model/ride.model.js';
 import cabdriverModel from './model/cabdriver.js';
+import transportRide from './model/transport.ride.model.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -202,12 +203,30 @@ setInterval(async()=>{
         for (const ride of rides) {
         const customer = await UserModel.findById(ride.userId);
         if (customer && customer.socketId) {
-          console.log("firing to", customer)
           io.to(customer.socketId).emit('trip-driver-not-found', { message: 'All drivers have been notified or no driver is available.' });
         }
         ride.status = "Unfulfilled"
         await ride.save();
       }
+
+
+        // Check for transport rides with no drivers available
+    const transportRides = await transportRide.find({
+      isSearching: false,
+      status: 'Pending',
+      status_accept: false
+    });
+
+    for (const transportRideItem of transportRides) {
+      const customer = await UserModel.findById(transportRideItem.userId);
+      if (customer && customer.socketId) {
+        io.to(customer.socketId).emit('trip-driver-not-found', { message: 'All drivers have been notified or no driver is available.' });
+      }
+      transportRideItem.status = "Unfulfilled";
+      await transportRideItem.save();
+    }
+
+
     }
    catch (error) {
     console.error('Error in checkAvailableDrivers:', error.message);

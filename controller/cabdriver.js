@@ -696,18 +696,23 @@ reqAcceptController: async(req,res) =>{
     }
 
     // Find the driver and ride
-    let ride;
-    if (is_transport_ride === false) {
-      ride = await Ride.findById(ride_id);
-    } else {
-      ride = await transportRide.findById(ride_id);
-    }
 
     const driver = await cabdriverModel.findById(driver_id);
 
     if (!driver) {
       throw new Error('Driver not found');
     }
+
+    let ride;
+    if (is_transport_ride === false) {
+      ride = await Ride.findById(ride_id);
+      driver.on_going_ride_model = "Ride";
+    } else {
+      ride = await transportRide.findById(ride_id);
+      driver.on_going_ride_model ="transportRide";
+    }
+
+    await driver.save();
 
     if (!ride) {
       throw new Error('Ride does not exist');
@@ -729,6 +734,7 @@ if(status_accept === true){
   ride.otp = (Math.floor(1000 + Math.random() * 9000)).toString();
   ride.status = "Accepted";
   driver.on_going_ride_id = ride_id;
+
 }
   await driver.save();
    const savedRide = await ride.save(); // Save changes to the ride
@@ -788,7 +794,7 @@ const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOption
 
     customer.on_going_ride_id = savedRide._id;
     await customer.save();
-    // io.emit('trip-driver-accepted', rideData);
+    //  io.emit('trip-driver-accepted', rideData);
     io.to(customer.socketId).emit('trip-driver-accepted', rideData)
     res.status(200).json({
       status: true,
@@ -874,6 +880,11 @@ goForPickup : async (req,res) =>{
       message: 'Driver has left for pickup',
     });
 
+
+    // io.emit('pickup-status', {
+    //   status: ride.status,
+    //   message: 'Driver has left for pickup',
+    // });
     // Respond to the request
     res.status(200).json({ status: true, message: 'Pickup status updated', data: {} });
   } catch (error) {
@@ -932,6 +943,11 @@ startRide : async (req,res)=>{
       message: message,
     });
 
+    // io.emit('pickup-status', {
+    //   status: ride.status,
+    //   message: message,
+    // });
+
     // Respond to the request
     res.status(200).json({ status: true, message: message, data: {} });
   } catch (error) {
@@ -975,16 +991,27 @@ completeRide : async (req,res) => {
     ride.status = "Completed"
     await ride.save();
 
-    // Remove on_going_ride_id from driver
-    await cabdriverModel.updateOne(
-      { _id: ride.driverId },
-      { $unset: { on_going_ride_id: "" } }
-    );
-     // Remove on_going_ride_id from customer
-     await UserModel.updateOne(
-      { _id: ride.userId },
-      { $unset: { on_going_ride_id: "" } }
-    );
+  // Remove on_going_ride_id and on_going_ride_model from driver
+await cabdriverModel.updateOne(
+  { _id: ride.driverId },
+  { 
+    $unset: { 
+      on_going_ride_id: "", 
+      on_going_ride_model: "" 
+    } 
+  }
+);
+
+// Remove on_going_ride_id and on_going_ride_model from customer
+await UserModel.updateOne(
+  { _id: ride.userId },
+  { 
+    $unset: { 
+      on_going_ride_id: "", 
+      on_going_ride_model: "" 
+    } 
+  }
+);
 
     // Calculate trip time
     const tripTime = new Date(ride.completedTime) - new Date(ride.startTime);
@@ -1004,7 +1031,7 @@ completeRide : async (req,res) => {
       customer_image: ride.userId.profile_img || "https://plus.unsplash.com/premium_photo-1683121366070-5ceb7e007a97?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       customer_name: `${ride.userId.firstName} ${ride.userId.lastName}`,
       reciever_name : ride.reciever_name,
-      reciever_number: reciever_number,
+      reciever_number: ride.reciever_number,
       pickup_address: ride.pickup_address,
       drop_address: ride.drop_address,
       trip_id: ride._id,
@@ -1031,10 +1058,15 @@ completeRide : async (req,res) => {
       status:"completed",
       message: message
     });
+
+    // io.emit('pickup-status', {
+    //   status:"completed",
+    //   message: message
+    // });
     return res.status(200).json({status:true, message: message ,data:{...response}});
   } catch (error) {
     console.error(error);
-    return res.status(500).json({status:false, message: 'Internal server error', data:{} });
+    return res.status(500).json({status:false, message: 'Internal server error', data:error.message });
   }
 },
 

@@ -27,7 +27,12 @@ const userSchema = new Schema(
     },
     on_going_ride_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Ride',
+        refPath: 'on_going_ride_model', // Dynamic reference path
+      },
+      on_going_ride_model: { // Field to store the model type
+        type: String,
+        required: true,
+        enum: ['Ride', 'transportRide'] // Valid values for the model type
       },
     },
 
