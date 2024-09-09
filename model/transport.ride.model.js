@@ -118,7 +118,13 @@ const transportRideSchema = new mongoose.Schema({
       is_transport_ride:{
         type:Boolean,
         default:true
-      }
+      },
+      extra_km_charge:{
+        type:String
+      },
+    total_amount:{
+      type:String
+    },
 
 });
 
