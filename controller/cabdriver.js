@@ -795,12 +795,21 @@ const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOption
     customer.on_going_ride_id = savedRide._id;
     await customer.save();
     //  io.emit('trip-driver-accepted', rideData);
+    if(is_transport_ride){
+      io.to(customer.socketId).emit('trip-driver-transport-accepted', rideData)
+      res.status(200).json({
+        status: true,
+        message: 'Ride Accepted',
+        data: `Ride Accepted`,
+      });
+    }else{
     io.to(customer.socketId).emit('trip-driver-accepted', rideData)
     res.status(200).json({
       status: true,
       message: 'Ride Accepted',
       data: `Ride Accepted`,
     });
+  }
   } 
   else if (status_accept===false) {
     ride.driverId = null;
@@ -875,10 +884,18 @@ goForPickup : async (req,res) =>{
     await ride.save();
 
     // Emit pickup status to clients
+    if(is_transport_ride){
+      io.to(customer.socketId).emit('pickup-transport-status', {
+        status: ride.status,
+        message: "Driver has left for pickup",
+      });
+    }
+    else{
     io.to(customer.socketId).emit('pickup-status', {
       status: ride.status,
-      message: 'Driver has left for pickup',
+      message: "Driver has left for pickup",
     });
+  }
 
 
     // io.emit('pickup-status', {
@@ -938,11 +955,18 @@ startRide : async (req,res)=>{
     : 'Your ride has started, please enjoy your ride';
 
     // Emit ride start event
+    if(is_transport_ride){
+      io.to(customer.socketId).emit('pickup-transport-status', {
+        status: ride.status,
+        message: message,
+      });
+    }
+    else{
     io.to(customer.socketId).emit('pickup-status', {
       status: ride.status,
       message: message,
     });
-
+  }
     // io.emit('pickup-status', {
     //   status: ride.status,
     //   message: message,
@@ -1056,10 +1080,18 @@ await UserModel.updateOne(
     ? 'Your parcel has been delivered, Thankyou for choosing us' 
     : 'Your ride has been completed, Thankyou for riding with us';
 
+
+    if(is_transport_ride){
+      io.to(ride.userId.socketId).emit('pickup-transport-status', {
+        status:"completed",
+        message: message
+      });
+    }else{
     io.to(ride.userId.socketId).emit('pickup-status', {
       status:"completed",
       message: message
     });
+  }
 
     // io.emit('pickup-status', {
     //   status:"completed",

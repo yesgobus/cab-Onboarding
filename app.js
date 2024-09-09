@@ -165,7 +165,14 @@ io.on('connection', (socket) => {
         console.log(rideData);
   
         // Emit the ride data
+
+        if(customer.on_going_ride_model ==="Ride"){
         io.to(customer.socketId).emit('restart-ride-status', rideData);
+        }else{
+          io.to(customer.socketId).emit('restart-transport-ride-status', rideData);
+        }
+
+
       } else {
         console.log("No ongoing ride for the registered customer");
       }
@@ -220,7 +227,7 @@ setInterval(async()=>{
     for (const transportRideItem of transportRides) {
       const customer = await UserModel.findById(transportRideItem.userId);
       if (customer && customer.socketId) {
-        io.to(customer.socketId).emit('trip-driver-not-found', { message: 'All drivers have been notified or no driver is available.' });
+        io.to(customer.socketId).emit('trip-driver-transport-not-found', { message: 'All drivers have been notified or no driver is available.' });
       }
       transportRideItem.status = "Unfulfilled";
       await transportRideItem.save();
