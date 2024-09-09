@@ -703,6 +703,8 @@ reqAcceptController: async(req,res) =>{
       ride = await transportRide.findById(ride_id);
     }
 
+    const driver = await cabdriverModel.findById(driver_id);
+
     if (!driver) {
       throw new Error('Driver not found');
     }
