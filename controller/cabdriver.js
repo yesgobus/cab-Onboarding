@@ -837,7 +837,7 @@ goForPickup : async (req,res) =>{
   try {
     
 
-    const { ride_id } = req.body;
+    const { ride_id, is_transport_ride } = req.body;
     const io = req.app.get('io');
 
 
@@ -847,7 +847,13 @@ goForPickup : async (req,res) =>{
     }
 
     // Find the ride and customer
-    const ride = await Ride.findById(ride_id).exec();
+    let ride;
+    if (is_transport_ride === false) {
+      ride = await Ride.findById(ride_id);
+    } else {
+      ride = await transportRide.findById(ride_id);
+    }
+
     if (!ride) {
       return res.status(404).json({ status: false, message: 'Ride not found', data: {} });
     }
@@ -880,7 +886,7 @@ goForPickup : async (req,res) =>{
 startRide : async (req,res)=>{
   try {
     const io = req.app.get('io');
-    const { ride_id, otp } = req.body;
+    const { ride_id, otp, is_transport_ride } = req.body;
 
     // Validate input
     if (!ride_id || !otp) {
@@ -888,7 +894,13 @@ startRide : async (req,res)=>{
     }
 
     // Find the ride and customer
-    const ride = await Ride.findById(ride_id).exec();
+    let ride;
+    if (is_transport_ride === false) {
+      ride = await Ride.findById(ride_id);
+    } else {
+      ride = await transportRide.findById(ride_id);
+    }
+
     if (!ride) {
       return res.status(404).json({ status: false, message: 'Ride not found', data: {} });
     }
@@ -910,14 +922,18 @@ startRide : async (req,res)=>{
     ride.startTime = new Date();
     await ride.save();
 
+    const message = is_transport_ride 
+    ? 'Your parcel is out for delivery' 
+    : 'Your ride has started, please enjoy your ride';
+
     // Emit ride start event
     io.to(customer.socketId).emit('pickup-status', {
       status: ride.status,
-      message: 'Your ride has started, please enjoy your ride',
+      message: message,
     });
 
     // Respond to the request
-    res.status(200).json({ status: true, message: 'Ride started successfully', data: {} });
+    res.status(200).json({ status: true, message: message, data: {} });
   } catch (error) {
     // Log error for debugging
     console.error('Error in startRide:', error);
@@ -929,12 +945,19 @@ startRide : async (req,res)=>{
 
 completeRide : async (req,res) => { 
   try {
-    const { ride_id } = req.body;
+    const { ride_id, is_transport_ride } = req.body;
     const io = req.app.get('io');
     // Fetch ride details
-    const ride = await Ride.findById(ride_id)
-    .populate('userId')
-    .exec();
+
+    let ride;
+    if (is_transport_ride === false) {
+      ride = await Ride.findById(ride_id).populate('userId')
+      .exec();;
+    } else {
+      ride = await transportRide.findById(ride_id).populate('userId')
+      .exec();;
+    }
+
     if (!ride) {
       return res.status(404).json({ message: 'Ride not found' });
     }
@@ -980,6 +1003,8 @@ completeRide : async (req,res) => {
     const response = {
       customer_image: ride.userId.profile_img || "https://plus.unsplash.com/premium_photo-1683121366070-5ceb7e007a97?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       customer_name: `${ride.userId.firstName} ${ride.userId.lastName}`,
+      reciever_name : ride.reciever_name,
+      reciever_number: reciever_number,
       pickup_address: ride.pickup_address,
       drop_address: ride.drop_address,
       trip_id: ride._id,
@@ -998,11 +1023,15 @@ completeRide : async (req,res) => {
 
     await ride.save();
 
+    const message = is_transport_ride 
+    ? 'Your parcel has been delivered, Thankyou for choosing us' 
+    : 'Your ride has been completed, Thankyou for riding with us';
+
     io.to(ride.userId.socketId).emit('pickup-status', {
       status:"completed",
-      message: 'Your ride has been completed'
+      message: message
     });
-    return res.status(200).json({status:true, message: "Ride is completed ",data:{...response}});
+    return res.status(200).json({status:true, message: message ,data:{...response}});
   } catch (error) {
     console.error(error);
     return res.status(500).json({status:false, message: 'Internal server error', data:{} });
