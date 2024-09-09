@@ -1035,6 +1035,8 @@ await UserModel.updateOne(
       pickup_address: ride.pickup_address,
       drop_address: ride.drop_address,
       trip_id: ride._id,
+      reciever_name: ride.reciever_name,
+      reciever_number: ride.reciever_number,
       vehicle_number: cabdriver.vehicle_number,
       date_time_ride: formatDate(ride.startTime),
       trip_time: formattedTripTime,
