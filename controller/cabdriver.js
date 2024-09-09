@@ -797,7 +797,9 @@ const pickupTimeString = pickupDate.toLocaleTimeString('en-US', pickupTimeOption
     });
   } 
   else if (status_accept===false) {
-    ride.driverId = "";
+    ride.driverId = null;
+    ride.pickup_distance = null;
+    ride.pickup_duration = null;
    await ride.save();
     res.status(200).json({
       status: true,
