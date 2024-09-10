@@ -118,7 +118,7 @@ reciever_number:{
 },
 transport_type:{
   type:String,
-  enum:['local','outstation'],
+  enum:['local','outstation', ""],
 },
 goods_type:[{
   type:String
