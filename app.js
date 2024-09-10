@@ -167,8 +167,10 @@ io.on('connection', (socket) => {
         // Emit the ride data
 
         if(customer.on_going_ride_model ==="Ride"){
+          console.log("Ride is there for customer")
         io.to(customer.socketId).emit('restart-ride-status', rideData);
         }else{
+          console.log("Parcel is there for customer")
           io.to(customer.socketId).emit('restart-transport-ride-status', rideData);
         }
 
