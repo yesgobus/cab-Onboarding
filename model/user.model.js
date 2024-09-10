@@ -31,7 +31,6 @@ const userSchema = new Schema(
       },
       on_going_ride_model: { // Field to store the model type
         type: String,
-        required: true,
         enum: ['Ride', 'transportRide'] // Valid values for the model type
       },
     },
