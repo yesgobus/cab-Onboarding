@@ -23,4 +23,6 @@ router.post('/ride/start_ride', authenticateToken, cabdriverController.startRide
 router.post('/end-trip', cabdriverController.completeRide);
 router.get('/configuration', authenticateToken, cabdriverController.configuration);
 router.delete('/delete', authenticateToken, cabdriverController.delete);
+router.get('/usertype', cabdriverController.getDriverTypes);
+router.get('/vehicle_category/:user_type_id', cabdriverController.getVehicleCategories)
 export default router;

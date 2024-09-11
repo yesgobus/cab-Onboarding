@@ -8,6 +8,7 @@ import cron from 'node-cron';
 import moment from 'moment-timezone';
 import Category from '../model/category.model.js';
 import transportRide from '../model/transport.ride.model.js';
+import DriverTypes from '../model/drivertypes.model.js';
 
 function normalizeName(name) {
   console.log(name.toLowerCase().replace(/[^a-z\s]/g, '').trim())
@@ -536,7 +537,7 @@ const cabdriverController = {
   
       if (req.body.total_experience) updateData.total_experience = req.body.total_experience;
       if (req.body.vehicle_model) updateData.vehicle_model = req.body.vehicle_model;
-      if (req.body.vehicle_category) updateData.vehicle_category = req.body.vehicle_category;
+      if (req.body.vehicle_category) updateData.carDetails = mongoose.Types.ObjectId(req.body.vehicle_category);
       if (req.body.vehicle_number) updateData.vehicle_number = req.body.vehicle_number;
       if (req.body.year_of_registration) updateData.year_of_registration = req.body.year_of_registration;
       if (req.body.alternateNumber) updateData.alternateNumber = req.body.alternateNumber;
@@ -1194,6 +1195,47 @@ delete : async (req,res) =>{
     return res.status(500).json({ status: false, message: 'Internal server error', data: {} });
   }
 },
+
+getDriverTypes : async(req,res) =>{
+  try{
+    const driver_types = await DriverTypes.find();
+    if(!driver_types){
+      throw "No types found"
+    }
+
+    const response = driver_types.map(type => ({
+      user_type_name: type.name,
+      user_type_id: type.id
+    }));
+   return res.status(200).json({status:true, message:"Types fetched", data: response})
+
+  }catch(error){
+    console.log(error)
+    return res.status(500).json({ status: false, message: 'Internal server error', data: {} });
+  }
+},
+
+getVehicleCategories : async(req,res) =>{
+  try{
+
+    const {user_type_id} = req.params;
+    const driver_types = await DriverTypes.findOne({id:user_type_id});
+    const categories= await Category.find({category_type: driver_types.category_type || "both"});
+
+    const response = categories.map(type => ({
+      category_name: type.category_name,
+      category_id: type._id
+    }));
+
+    return res.status(200).json({status:true, message:"Vehicle Categories fetched", data: response})
+
+
+  }catch(error){
+    console.log(error)
+    return res.status(500).json({ status: false, message: 'Internal server error', data: {} });
+  }
+}
+
 
 }
 
