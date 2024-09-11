@@ -532,7 +532,12 @@ const cabdriverController = {
       if (req.body.dl_img) updateData.dl_img = await aws.uploadToS3(req.body.dl_img);
       if (req.body.vehicle_reg_img) updateData.vehicle_reg_img = await aws.uploadToS3(req.body.vehicle_reg_img);
       if (req.body.vehicle_image) updateData.vehicle_image = await aws.uploadToS3(req.body.vehicle_image);
-      if (req.body.profile_img) updateData.profile_img = await aws.uploadToS3(req.body.profile_img);
+      if (req.body.profile_img) {
+        updateData.profile_img = await aws.uploadToS3(req.body.profile_img);
+      }
+      else{
+        updateData.profile_img = "https://images.unsplash.com/photo-1504620776737-8965fde5c079?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+      }
       if (req.body.aadhaar_img) updateData.aadhaar_img = await aws.uploadToS3(req.body.aadhaar_img);
   
       if (req.body.total_experience) updateData.total_experience = req.body.total_experience;
