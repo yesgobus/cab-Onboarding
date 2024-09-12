@@ -9,7 +9,7 @@ import moment from 'moment-timezone';
 import Category from '../model/category.model.js';
 import transportRide from '../model/transport.ride.model.js';
 import DriverTypes from '../model/drivertypes.model.js';
-
+import mongoose from 'mongoose';
 function normalizeName(name) {
   console.log(name.toLowerCase().replace(/[^a-z\s]/g, '').trim())
   return name?.toLowerCase().replace(/[^a-z\s]/g, '').trim();
