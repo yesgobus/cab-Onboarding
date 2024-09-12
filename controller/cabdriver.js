@@ -536,7 +536,7 @@ const cabdriverController = {
       if (req.body.aadhaar_img) updateData.aadhaar_img = await aws.uploadToS3(req.body.aadhaar_img);
       if (req.body.total_experience) updateData.total_experience = req.body.total_experience;
       if (req.body.vehicle_model) updateData.vehicle_model = req.body.vehicle_model;
-      if (req.body.vehicle_category) {
+      if (req.body.vehicle_category && mongoose.Types.ObjectId.isValid(req.body.vehicle_category)) {
         const objectId = mongoose.Types.ObjectId(req.body.vehicle_category);
         updateData.carDetails.push(objectId);
       }
