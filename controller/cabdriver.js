@@ -1126,10 +1126,10 @@ configuration : async (req,res)=>{
       vehicle_reg_img,
       vehicle_image,
       profile_img,
+      carDetails,
       aadhaar_img,
       total_experience,
       vehicle_model,
-      vehicle_category,
       vehicle_number,
       year_of_registration,
       fullName,
@@ -1152,7 +1152,7 @@ configuration : async (req,res)=>{
       aadhaar_img,
       total_experience,
       vehicle_model,
-      vehicle_category,
+      carDetails,
       vehicle_number,
       year_of_registration,
       fullName,
@@ -1172,10 +1172,10 @@ configuration : async (req,res)=>{
       profile_img: driver.profile_img,
       name: driver.firstName + " " + driver.lastName
     };
-
     return res.status(200).json({ status: true, message: "Configurations Fetched", data: response });
   } catch (error) {
-    return res.status(500).json({ status: false, message: 'Internal server error', data: {error} });
+    console.log(error);
+    return res.status(500).json({ status: false, message: 'Internal server error', data: {} });
   }
 },
 
