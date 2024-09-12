@@ -10,6 +10,10 @@ import Category from '../model/category.model.js';
 import transportRide from '../model/transport.ride.model.js';
 import DriverTypes from '../model/drivertypes.model.js';
 import mongoose from 'mongoose';
+import PDFDocument from 'pdfkit';
+import { PassThrough } from 'stream';
+import fs from 'fs';
+
 function normalizeName(name) {
   console.log(name.toLowerCase().replace(/[^a-z\s]/g, '').trim())
   return name?.toLowerCase().replace(/[^a-z\s]/g, '').trim();
@@ -1236,8 +1240,184 @@ getVehicleCategories : async(req,res) =>{
     console.log(error)
     return res.status(500).json({ status: false, message: 'Internal server error', data: {} });
   }
-}
+},
 
+getBillingPdf : async(req,res) => {
+  const { ride_id, is_transport_ride } = req.body;
+
+  if (!ride_id) {
+    return res.status(400).json({ message: 'ride_id is required' });
+  }
+
+  try {
+    let ride;
+    if (is_transport_ride === 'false') {
+      ride = await Ride.findById(ride_id).populate('userId').exec();
+    } else {
+      ride = await transportRide.findById(ride_id).populate('userId').exec();
+    }
+
+    if (!ride) {
+      return res.status(404).json({ message: 'Ride not found' });
+    }
+
+    // Fetch driver details
+    const cabdriver = await cabdriverModel.findById(ride.driverId)
+      .populate('carDetails')
+      .exec();
+    if (!cabdriver) {
+      return res.status(404).json({ message: 'Driver not found' });
+    }
+
+    // Calculate trip time and extra km charge
+    const tripTime = new Date(ride.completedTime) - new Date(ride.startTime);
+    const formattedTripTime = formatTripTime(tripTime);
+    const extraDistance = calculateDistance(cabdriver.location.coordinates[0], cabdriver.location.coordinates[1], ride.drop_lat, ride.drop_lng);
+    const extraKmCharge = Math.round(extraDistance * Number(cabdriver.carDetails[0].extra_km_fare));
+    const tripAmount = convertCurrencyStringToNumber(ride.trip_amount);
+    const totalFare = Math.round(tripAmount + extraKmCharge);
+
+    // Generate PDF
+    const doc = new PDFDocument();
+    const pdfStream = new PassThrough();
+
+    doc.pipe(pdfStream);
+    doc.font('DejaVuSans.ttf');
+    const rupeeSymbol = '\u20B9'; // Unicode for rupee symbol
+
+    // Define constants for uniformity
+    const boxHeight = 23;
+    const headingFontSize = 14; // Increased font size for headings
+    const textOffset = 10; // Offset from the top of the box to the text
+    const verticalAdjustment = 0; // Additional offset to move headings above the vertical center
+    const valueStartX = 190; // Fixed horizontal start position for values
+    
+    // Function to calculate text width
+    function getTextWidth(text, fontSize, font) {
+      doc.fontSize(fontSize).font(font);
+      return doc.widthOfString(text);
+    }
+    
+    // Header Section
+    doc.fontSize(20).fillColor('#FEAC80').text('YesGoBus', 50, 50);
+    doc.fontSize(10).fillColor('black').text('+000 123 456 789', 50, 80).text('Bangalore, India', 50, 95).text('yesgobus@help.com', 50, 110);
+    
+    doc.fontSize(20).fillColor('#FEAC80').text('Billing Receipt', 315, 50);
+    doc.fontSize(10).fillColor('black').font('DejaVuSans-Bold.ttf')
+  .text('Invoice #:', 315, 80)
+  .text('Billing time:', 315, 95);
+
+// Use regular font for values
+doc.font('DejaVuSans.ttf')
+  .text(`${ride._id}`, 385, 80) // Adjusted X position for the value
+  .text(`${ride.completedTime}`, 385, 95); // Adjusted X position for the value
+    
+    doc.moveDown(2);
+    
+    // Driver and Car Details Section
+    const driverDetailsY = 150;
+    const driverDetailsText = 'Driver Details';
+    doc.rect(50, driverDetailsY, 500, boxHeight).fill('#FEAC80').stroke(); // Background color for heading
+    doc.fontSize(headingFontSize).fillColor('black').font('DejaVuSans-Bold.ttf')
+      .text(driverDetailsText, 50 + textOffset, driverDetailsY + (boxHeight - headingFontSize) / 2 + verticalAdjustment);
+    
+    // Driver Details
+    doc.fontSize(12).fillColor('black')
+      .font('DejaVuSans-Bold.ttf')
+      .text('Name:', 60, 185)
+      .font('DejaVuSans.ttf').text(`${cabdriver.firstName} ${cabdriver.lastName}`, valueStartX, 185)
+      .font('DejaVuSans-Bold.ttf')
+      .text('Contact Number:', 60, 200)
+      .font('DejaVuSans.ttf').text(`${cabdriver.mobileNumber}`, valueStartX, 200);
+    
+    // Vehicle Details Section
+    const vehicleDetailsY = 220;
+    const vehicleDetailsText = 'Vehicle Details';
+    doc.rect(50, vehicleDetailsY, 500, boxHeight).fill('#FEAC80').stroke(); // Background color for heading
+    doc.fontSize(headingFontSize).fillColor('black').font('DejaVuSans-Bold.ttf')
+      .text(vehicleDetailsText, 50 + textOffset, vehicleDetailsY + (boxHeight - headingFontSize) / 2 + verticalAdjustment);
+    
+    // Vehicle Details
+    doc.fontSize(12).fillColor('black')
+      .font('DejaVuSans-Bold.ttf')
+      .text('Vehicle Number:', 60, 250)
+      .font('DejaVuSans.ttf').text(`${cabdriver.vehicle_number}`, valueStartX, 250)
+      .font('DejaVuSans-Bold.ttf')
+      .text('Vehicle Model:', 60, 265)
+      .font('DejaVuSans.ttf').text(`${cabdriver.vehicle_model}`, valueStartX, 265);
+    
+    // Customer Details Section
+    const customerDetailsY = 285;
+    const customerDetailsText = 'Customer Details';
+    doc.rect(50, customerDetailsY, 500, boxHeight).fill('#FEAC80').stroke(); // Background color for heading
+    doc.fontSize(headingFontSize).fillColor('black').font('DejaVuSans-Bold.ttf')
+      .text(customerDetailsText, 50 + textOffset, customerDetailsY + (boxHeight - headingFontSize) / 2 + verticalAdjustment);
+    
+    // Customer Details
+    doc.fontSize(12).fillColor('black')
+      .font('DejaVuSans-Bold.ttf')
+      .text('Name:', 60, 320)
+      .font('DejaVuSans.ttf').text(`${ride.userId.firstName} ${ride.userId.lastName}`, valueStartX, 320)
+      .font('DejaVuSans-Bold.ttf')
+      .text('Contact Number:', 60, 335)
+      .font('DejaVuSans.ttf').text(`${ride.userId.mobileNumber}`, valueStartX, 335);
+    
+    // Ride Details Section
+    const rideDetailsY = 355;
+    const rideDetailsText = 'Ride Details';
+    doc.rect(50, rideDetailsY, 500, boxHeight).fill('#FEAC80').stroke(); // Background color for heading
+    doc.fontSize(headingFontSize).fillColor('black').font('DejaVuSans-Bold.ttf')
+      .text(rideDetailsText, 50 + textOffset, rideDetailsY + (boxHeight - headingFontSize) / 2 + verticalAdjustment);
+    
+    // Ride Details
+    doc.fontSize(12).fillColor('black')
+      .font('DejaVuSans-Bold.ttf')
+      .text('Pickup Location:', 60, 390)
+      .font('DejaVuSans.ttf').text(`${ride.pickup_address}`, valueStartX, 390)
+      .font('DejaVuSans-Bold.ttf')
+      .text('Drop Location:', 60, 420)
+      .font('DejaVuSans.ttf').text(`${ride.drop_address}`, valueStartX, 420)
+      .font('DejaVuSans-Bold.ttf')
+      .text('Trip Duration:', 60, 440)
+      .font('DejaVuSans.ttf').text(`${formattedTripTime}`, valueStartX, 440);
+    
+    // Charges Section
+    const chargesY = 460;
+    const chargesText = 'Charges';
+    doc.rect(50, chargesY, 500, boxHeight).fill('#FEAC80').stroke(); // Background color for heading
+    doc.fontSize(headingFontSize).fillColor('black').font('DejaVuSans-Bold.ttf')
+      .text(chargesText, 50 + textOffset, chargesY + (boxHeight - headingFontSize) / 2 + verticalAdjustment);
+    
+    // Charges
+    doc.fontSize(12).fillColor('black')
+      .font('DejaVuSans-Bold.ttf')
+      .text('Subtotal', 60, 490)
+      .font('DejaVuSans.ttf').text(` ${rupeeSymbol} ${tripAmount} `, valueStartX, 490)
+      .font('DejaVuSans-Bold.ttf')
+      .text('Extra KM Charge', 60, 505)
+      .font('DejaVuSans.ttf').text(` ${rupeeSymbol} ${extraKmCharge}`, valueStartX, 505)
+      .font('DejaVuSans-Bold.ttf')
+      .text('Total Charge', 60, 520)
+      .font('DejaVuSans.ttf').text(` ${rupeeSymbol} ${totalFare}`, valueStartX, 520);
+    
+    // Footer Section
+    doc.fontSize(12).font('DejaVuSans-Bold.ttf').fillColor('black')
+      .text('Thank you!', 50, 555)
+    
+    doc.end();
+    
+
+
+
+    // Stream the PDF to the client
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${ride_id}.pdf"`);
+    pdfStream.pipe(res);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({status:false, message: 'Internal server error', error: error.message });
+  }
+},
 
 }
 

@@ -24,5 +24,6 @@ router.post('/end-trip', cabdriverController.completeRide);
 router.get('/configuration', authenticateToken, cabdriverController.configuration);
 router.delete('/delete', authenticateToken, cabdriverController.delete);
 router.get('/usertype', cabdriverController.getDriverTypes);
-router.get('/vehicle_category/:user_type_id', cabdriverController.getVehicleCategories)
+router.get('/vehicle_category/:user_type_id', cabdriverController.getVehicleCategories);
+router.post('/billingpdf', cabdriverController.getBillingPdf);
 export default router;
