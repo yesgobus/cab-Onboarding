@@ -13,6 +13,7 @@ import mongoose from 'mongoose';
 import PDFDocument from 'pdfkit';
 import { PassThrough } from 'stream';
 import fs from 'fs';
+import AWS from 'aws-sdk';
 
 function normalizeName(name) {
   console.log(name.toLowerCase().replace(/[^a-z\s]/g, '').trim())
@@ -1405,14 +1406,34 @@ doc.font('DejaVuSans.ttf')
       .text('Thank you!', 50, 555)
     
     doc.end();
+    const s3 = new AWS.S3({
+      accessKeyId: process.env.AWS_ACCESS_KEY,
+      secretAccessKey: process.env.AWS_SECRET_KEY,
+      region: process.env.AWS_REGION,
+    });
     
+    const BUCKET_NAME = process.env.AWS_BUCKET_NAME;
 
+    const uploadParams = {
+      Bucket: BUCKET_NAME,
+      Key: `receipts/${ride_id}.pdf`,
+      Body: pdfStream,
+      ContentType: 'application/pdf',
+    };
 
+    s3.upload(uploadParams, (err, data) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ status: false, message: 'Failed to upload PDF', error: err.message });
+      }
 
-    // Stream the PDF to the client
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${ride_id}.pdf"`);
-    pdfStream.pipe(res);
+      // Return the S3 URL in the response
+      res.status(200).json({
+        status: true,
+        message: 'PDF uploaded successfully',
+        data:{ pdf_url: data.Location, pdf_name:`${ride_id}.pdf`}, // S3 URL of the uploaded PDF
+      });
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({status:false, message: 'Internal server error', error: error.message });
