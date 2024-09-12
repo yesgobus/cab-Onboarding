@@ -536,7 +536,7 @@ const cabdriverController = {
       if (req.body.aadhaar_img) updateData.aadhaar_img = await aws.uploadToS3(req.body.aadhaar_img);
       if (req.body.total_experience) updateData.total_experience = req.body.total_experience;
       if (req.body.vehicle_model) updateData.vehicle_model = req.body.vehicle_model;
-      if (req.body.vehicle_category) updateData.carDetails.push(mongoose.Types.ObjectId(req.body.vehicle_category));
+      // if (req.body.vehicle_category) updateData.carDetails.push(mongoose.Types.ObjectId(req.body.vehicle_category));
       if (req.body.vehicle_number) updateData.vehicle_number = req.body.vehicle_number;
       if (req.body.year_of_registration) updateData.year_of_registration = req.body.year_of_registration;
       if (req.body.alternateNumber) updateData.alternateNumber = req.body.alternateNumber;
