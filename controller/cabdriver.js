@@ -537,8 +537,8 @@ const cabdriverController = {
       if (req.body.total_experience) updateData.total_experience = req.body.total_experience;
       if (req.body.vehicle_model) updateData.vehicle_model = req.body.vehicle_model;
       if (req.body.vehicle_category && mongoose.Types.ObjectId.isValid(req.body.vehicle_category)) {
-        const objectId = new mongoose.Types.ObjectId(req.body.vehicle_category);
-        updateData.carDetails.push(objectId);
+        const objectId = mongoose.Types.ObjectId(req.body.vehicle_category);
+        updateData.carDetails = (objectId);
       }
       if (req.body.vehicle_number) updateData.vehicle_number = req.body.vehicle_number;
       if (req.body.year_of_registration) updateData.year_of_registration = req.body.year_of_registration;
