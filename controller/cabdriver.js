@@ -1141,7 +1141,10 @@ configuration : async (req,res)=>{
       pincode,
       address,
       dob,
-      user_type
+      user_type,
+      pane_card_number,
+      aadhaar_number,
+      rc_number,
     } = driver;
 
     // Determine onboarding_complete based on field presence
@@ -1164,7 +1167,10 @@ configuration : async (req,res)=>{
       pincode,
       address,
       dob,
-      user_type
+      user_type,
+      pane_card_number,
+      aadhaar_number,
+      rc_number,
     ].every(field => field && field.toString().trim() !== '');
 
     const response = {
