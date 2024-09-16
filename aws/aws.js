@@ -17,6 +17,7 @@ export const uploadToS3 = (fileData) => {
       Bucket: bucketName,
       Key: `cabdriver/${Date.now().toString()}.jpg`,
       Body: fileData,
+      ContentType: 'image/jpeg'
     };
     S3.upload(params, (err, data) => {
       if (err) {
