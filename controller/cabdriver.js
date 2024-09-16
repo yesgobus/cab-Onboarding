@@ -1145,6 +1145,7 @@ configuration : async (req,res)=>{
       pane_card_number,
       aadhaar_number,
       rc_number,
+      driving_license
     } = driver;
 
     // Determine onboarding_complete based on field presence
@@ -1171,6 +1172,7 @@ configuration : async (req,res)=>{
       pane_card_number,
       aadhaar_number,
       rc_number,
+      driving_license
     ].every(field => field && field.toString().trim() !== '');
 
     const response = {
