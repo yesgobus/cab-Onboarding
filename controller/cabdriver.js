@@ -518,6 +518,8 @@ const cabdriverController = {
     try {
       // Fetch the existing document to ensure it exists
       const existingDocument = await cabdriverModel.findById(req.user);
+      console.log('req.files:', req.files);
+console.log('req.body:', req.body);
       
       if (!existingDocument) {
         return res.status(404).json({
@@ -533,12 +535,48 @@ const cabdriverController = {
       if (req.body.fullName) updateData.fullName = req.body.fullName;
       if (req.body.email) updateData.email = req.body.email;
       if (req.body.mobileNumber) updateData.mobileNumber = req.body.mobileNumber;
+
+
+      const files = [
+        'dl_img',
+        'vehicle_reg_img',
+        'vehicle_image',
+        'profile_img',
+        'aadhaar_img'
+      ];
+      
+      for (const file of files) {
+        // Check if the file field exists and has at least one file
+        if (req.files[file] && req.files[file].length > 0) {
+          try {
+            // Ensure you have the file's buffer from multer
+            const fileBuffer = req.files[file][0].buffer;
+            
+            // Upload the file to S3
+            const uploadedFileUrl = await aws.uploadToS3(fileBuffer);
+            
+            // Store the S3 URL in updateData
+            updateData[file] = uploadedFileUrl;
+          } catch (uploadError) {
+            console.error(`Error uploading ${file}:`, uploadError);
+            return res.status(500).json({
+              status: false,
+              data: { errorMessage: `Error uploading ${file}: ${uploadError.message}` },
+              message: "Server error",
+            });
+          }
+        } else {
+          // Handle the case where the file field does not exist or is empty
+          console.log(`No file uploaded for field: ${file}`);
+        }
+      }
   
-      if (req.body.dl_img) updateData.dl_img = await aws.uploadToS3(req.body.dl_img);
-      if (req.body.vehicle_reg_img) updateData.vehicle_reg_img = await aws.uploadToS3(req.body.vehicle_reg_img);
-      if (req.body.vehicle_image) updateData.vehicle_image = await aws.uploadToS3(req.body.vehicle_image);
-      if (req.body.profile_img) updateData.profile_img = await aws.uploadToS3(req.body.profile_img);      
-      if (req.body.aadhaar_img) updateData.aadhaar_img = await aws.uploadToS3(req.body.aadhaar_img);
+      // if (req.body.dl_img) updateData.dl_img = await aws.uploadToS3(req.file.dl_img);
+      // if (req.body.vehicle_reg_img) updateData.vehicle_reg_img = await aws.uploadToS3(req.file.vehicle_reg_img);
+      // if (req.body.vehicle_image) updateData.vehicle_image = await aws.uploadToS3(req.file.vehicle_image);
+      // if (req.body.profile_img) updateData.profile_img = await aws.uploadToS3(req.file.profile_img);      
+      // if (req.body.aadhaar_img) updateData.aadhaar_img = await aws.uploadToS3(req.file.aadhaar_img);
+
       if (req.body.total_experience) updateData.total_experience = req.body.total_experience;
       if (req.body.vehicle_model) updateData.vehicle_model = req.body.vehicle_model;
       if (req.body.vehicle_category && mongoose.Types.ObjectId.isValid(req.body.vehicle_category)) {
@@ -555,6 +593,7 @@ const cabdriverController = {
       if (req.body.user_type) updateData.user_type = req.body.user_type;
   
       if (Object.keys(updateData).length === 0) {
+        console.log(updateData)
         return res.status(200).json({
           status: true,
           data: {},
@@ -562,6 +601,7 @@ const cabdriverController = {
         });
       }
   
+      console.log(updateData)
       // Perform the update
       const data = await cabdriverModel.findOneAndUpdate(
         { _id: req.user },

@@ -57,7 +57,7 @@ app.use(cors());
 app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(multer().any());
+//app.use(multer().any());
 
 if (app.get('env') === 'development') {
   app.use(logger('dev'));
