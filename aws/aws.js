@@ -15,7 +15,7 @@ export const uploadToS3 = (fileData) => {
   return new Promise((resolve, reject) => {
     const params = {
       Bucket: bucketName,
-      Key: `cabdriver/${Date.now().toString()}.jpg`,
+      Key: `cabdriver/${Date.now().toString()}.jpeg`,
       Body: fileData,
       ContentType: 'image/jpeg'
     };
