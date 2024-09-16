@@ -577,7 +577,7 @@ console.log('req.body:', req.body);
 
 
   
-      if (req.body.dl_img) updateData.dl_img = await aws.uploadToS3(base64ToBuffer(req.file.dl_img));
+      if (req.body.dl_img) updateData.dl_img = await aws.uploadToS3(base64ToBuffer(req.body.dl_img));
       // if (req.body.vehicle_reg_img) updateData.vehicle_reg_img = await aws.uploadToS3(req.file.vehicle_reg_img);
       // if (req.body.vehicle_image) updateData.vehicle_image = await aws.uploadToS3(req.file.vehicle_image);
       // if (req.body.profile_img) updateData.profile_img = await aws.uploadToS3(req.file.profile_img);      
