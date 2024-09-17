@@ -23,7 +23,8 @@ const userSchema = new Schema(
         type:String
     },
     profile_img:{
-        type:String
+        type:String,
+        default : "https://cabdriver-bucket.s3.ap-south-1.amazonaws.com/cabdriver/29332cc5-6da5-4543-90dc-119c5e91d0f5.jpeg"
     },
     on_going_ride_id: {
         type: mongoose.Schema.Types.ObjectId,
