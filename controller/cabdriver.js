@@ -184,8 +184,45 @@ const cabdriverController = {
     });
   }
 },
-  verify_otp : async (req, res) => {
+  verify_otp: async (req, res) => {
   try {
+    // Check if the mobile number is the bypass number
+    if (req.body.mobileNumber === "919999999999" && req.body.otp === "000000") {
+      // Bypass external verification and generate token directly
+      const user = await cabdriverModel.findOne({
+        mobileNumber: req.body.mobileNumber,
+      });
+
+      if (user) {
+        const payload = {
+          userId: user._id,
+          mobileNumber: req.body.mobileNumber,
+        };
+
+        const generatedToken = jwt.sign(payload, process.env.JWT_KEY);
+        return res.status(200).send({
+          status: true,
+          data: { token: generatedToken, user: user },
+          message: "OTP verified (bypassed for 9999999999)",
+        });
+      }
+
+      // If user not found
+      return res.status(200).send({
+        status: false,
+        data: {},
+        message: "User does not exist",
+      });
+    }
+
+    // If the mobile number is not 9999999999, proceed with the actual OTP verification
+    if (!req.body.orderId || !req.body.otp || !req.body.mobileNumber) {
+      return res.status(400).send({
+        status: false,
+        message: "Invalid request: Missing required fields",
+      });
+    }
+
     const response = await axios.post(
       "https://auth.otpless.app/auth/otp/v1/verify",
       {
@@ -201,10 +238,13 @@ const cabdriverController = {
         },
       }
     );
+
+    // Check if OTP is verified
     if (response.data.isOTPVerified) {
       const user = await cabdriverModel.findOne({
         mobileNumber: req.body.mobileNumber,
       });
+
       if (user) {
         const payload = {
           userId: user._id,
@@ -219,16 +259,18 @@ const cabdriverController = {
         });
       }
     }
-    return res.status(200).send({
+
+    // If OTP verification failed
+    return res.status(400).send({
       status: false,
       data: response.data,
-      message: response.data.reason,
+      message: response.data.reason || "OTP verification failed",
     });
   } catch (err) {
     return res.status(500).send({
       status: false,
       data: { errorMessage: err.message },
-      message: "server error",
+      message: "Server error",
     });
   }
 },
